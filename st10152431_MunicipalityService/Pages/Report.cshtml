@@ -1,0 +1,76 @@
+﻿@page
+@model st10152431_MunicipalityService.Pages.ReportModel
+@{
+    ViewData["Title"] = "Report page";
+}
+<div class="report-container" style="max-width:900px; margin:auto;">
+    <h2 style="text-align:center;">
+        <span style="background:#417a4a; color:#fff; border:6px solid #e6b13a; border-radius:24px; padding:8px 32px; font-size:2.5rem; font-family:monospace; box-shadow:0 2px 8px #0001;">
+            Report Issues
+        </span>
+    </h2>
+
+    <!-- ✅ REMOVED name attributes - asp-for handles it! -->
+    <form id="issues-form" method="post" enctype="multipart/form-data" style="max-width:500px; margin:auto;">
+        <div style="margin-bottom:16px;">
+            <label asp-for="Input.Location" style="font-family:monospace;">Location</label>
+            <input asp-for="Input.Location" style="width:100%; padding:8px; border-radius:8px; border:2px solid #417a4a; margin-top:4px;" />
+        </div>
+        <div style="margin-bottom:16px;">
+            <label asp-for="Input.Category" style="font-family:monospace;">Category</label>
+            <select asp-for="Input.Category" style="width:100%; padding:8px; border-radius:8px; border:2px solid #417a4a; margin-top:4px;">
+                <option value="">-- Select category --</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+        </div>
+        <div style="margin-bottom:16px;">
+            <label asp-for="Input.Description" style="font-family:monospace;">Description</label>
+            <textarea asp-for="Input.Description" style="width:100%; padding:8px; border-radius:8px; border:2px solid #417a4a; margin-top:4px;"></textarea>
+        </div>
+        <div style="margin-bottom:16px;">
+            <label asp-for="Input.Image" style="font-family:monospace;">Attach Image (optional)</label>
+            <input asp-for="Input.Image" type="file" style="width:100%; margin-top:4px;" />
+        </div>
+        <button type="submit" style="background:#e6b13a; color:#417a4a; border:none; border-radius:8px; padding:10px 28px; font-size:1rem; font-weight:600; cursor:pointer;">
+            Submit Issue
+        </button>
+    </form>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message" style="margin-top:24px; color:#b13a3a;">@Model.Message</div>
+    }
+
+    @if (Model.CurrentUser != null && Model.TodayPulse != null)
+    {
+        <div class="pulse-container" style="margin-top:40px; border:1px solid #e6b13a; border-radius:12px; padding:24px; background:#fffbe6;">
+            <h2 style="color:#417a4a;">Daily Community Pulse</h2>
+            <p style="font-size:1.2rem;"><strong>@Model.TodayPulse.Question</strong></p>
+            @if (Model.ShowPulseForm)
+            {
+                <form method="post" asp-page-handler="Pulse">
+                    @foreach (var choice in Model.TodayPulse.Choices)
+                    {
+                        <div style="margin-bottom:8px;">
+                            <input type="radio" name="PulseChoice" value="@choice" required id="pulse_@choice" />
+                            <label for="pulse_@choice">@choice</label>
+                        </div>
+                    }
+                    <button type="submit" style="background:#e6b13a; color:#417a4a; border:none; border-radius:8px; padding:8px 24px; font-size:1rem; font-weight:600; cursor:pointer;">
+                        Submit Answer
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div style="color: #417a4a; font-weight: bold; margin-top:16px;">
+                    You have already answered today's pulse:<br />
+                    <span style="color: #e6b13a;">@Model.PulseAnswer</span>
+                </div>
+            }
+        </div>
+    }
+</div>

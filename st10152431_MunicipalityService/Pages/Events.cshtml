@@ -1,0 +1,149 @@
+﻿@page
+@model st10152431_MunicipalityService.Pages.EventsModel
+@{
+    ViewData["Title"] = "Local Events & Announcements";
+}
+
+<div style="display:flex; gap:40px; flex-wrap:wrap; justify-content:center; margin-top:32px;">
+    <!-- Events Section -->
+    <div style="flex:1; min-width:340px; max-width:600px; background:#f6fff6; border-radius:18px; box-shadow:0 2px 8px #0001; padding:32px;">
+        <h2 style="color:#417a4a;">Upcoming Events</h2>
+        <form id="event-filter-form" method="get">
+            <div style="margin-bottom:18px;">
+                <label>Filter by Category:</label>
+                <select asp-for="EventCategoryFilter" asp-items="Model.EventCategories"></select>
+                <label style="margin-left:16px;">Filter by Date:</label>
+                <input asp-for="EventDateFilter" type="date" />
+                <button type="submit" style="margin-left:16px;">Filter</button>
+            </div>
+        </form>
+        <div>
+            @if (Model.FilteredEvents.Any())
+            {
+                <ul>
+                    @foreach (var evt in Model.FilteredEvents)
+                    {
+                        <li>
+                            <strong>@evt.Name</strong> - @evt.Category<br />
+                            <span>From @evt.StartDate.ToString("yyyy-MM-dd") to @evt.EndDate.ToString("yyyy-MM-dd")</span><br />
+                            <span style="color:#555;">Location: @evt.Location</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div style="color:#b13a3a;">No events found for selected filters.</div>
+            }
+        </div>
+        <hr />
+        <h3 style="margin-top:32px;">Create New Event</h3>
+        @if (Model.IsLoggedIn)
+        {
+            <form method="post" asp-page-handler="CreateEvent">
+                <div>
+                    <label>Event Name:</label>
+                    <input asp-for="NewEvent.Name" required />
+                </div>
+                <div>
+                    <label>Start Date:</label>
+                    <input asp-for="NewEvent.StartDate" type="date" required />
+                </div>
+                <div>
+                    <label>End Date:</label>
+                    <input asp-for="NewEvent.EndDate" type="date" required />
+                </div>
+                <div>
+                    <label>Event Category:</label>
+                    <select asp-for="NewEvent.Category" asp-items="Model.EventCategories"></select>
+                </div>
+                <div>
+                    <label>Event Location:</label>
+                    <input asp-for="NewEvent.Location" required />
+                </div>
+                <button type="submit" style="margin-top:12px;">Add Event</button>
+            </form>
+        }
+        else
+        {
+            <div style="color:#b13a3a; margin-top:12px;">Log in to create events.</div>
+        }
+    </div>
+
+    <!-- Announcements Section -->
+    <div style="flex:1; min-width:340px; max-width:600px; background:#fffbe6; border-radius:18px; box-shadow:0 2px 8px #0001; padding:32px;">
+        <h2 style="color:#e6b13a;">Announcements</h2>
+        <form id="announcement-filter-form" method="get">
+            <div style="margin-bottom:18px;">
+                <label>Filter by Category:</label>
+                <select asp-for="AnnouncementCategoryFilter" asp-items="Model.AnnouncementCategories"></select>
+                <label style="margin-left:16px;">Filter by Date:</label>
+                <input asp-for="AnnouncementDateFilter" type="date" />
+                <button type="submit" style="margin-left:16px;">Filter</button>
+            </div>
+        </form>
+        <div>
+            @if (Model.FilteredAnnouncements.Any())
+            {
+                <ul>
+                    @foreach (var ann in Model.FilteredAnnouncements)
+                    {
+                        <li>
+                            <strong>@ann.Name</strong> - @ann.Category<br />
+                            <span>From @ann.StartDate.ToString("yyyy-MM-dd") to @ann.EndDate.ToString("yyyy-MM-dd")</span><br />
+                            <span style="color:#555;">Location: @ann.Location</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div style="color:#b13a3a;">No announcements found for selected filters.</div>
+            }
+        </div>
+        <hr />
+        <h3 style="margin-top:32px;">Create New Announcement</h3>
+        @if (Model.IsLoggedIn)
+        {
+            <form method="post" asp-page-handler="CreateAnnouncement">
+                <div>
+                    <label>Announcement Name:</label>
+                    <input asp-for="NewAnnouncement.Name" required />
+                </div>
+                <div>
+                    <label>Start Date:</label>
+                    <input asp-for="NewAnnouncement.StartDate" type="date" required />
+                </div>
+                <div>
+                    <label>End Date:</label>
+                    <input asp-for="NewAnnouncement.EndDate" type="date" required />
+                </div>
+                <div>
+                    <label>Announcement Category:</label>
+                    <select asp-for="NewAnnouncement.Category" asp-items="Model.AnnouncementCategories"></select>
+                </div>
+                <div>
+                    <label>Announcement Location:</label>
+                    <input asp-for="NewAnnouncement.Location" required />
+                </div>
+                <button type="submit" style="margin-top:12px;">Add Announcement</button>
+            </form>
+        }
+        else
+        {
+            <div style="color:#b13a3a; margin-top:12px;">Log in to create announcements.</div>
+        }
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div style="color:#b13a3a; margin-top:24px;">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors)
+       .Where(e => !e.ErrorMessage.Contains("EventCategoryFilter") && !e.ErrorMessage.Contains("AnnouncementCategoryFilter")))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
