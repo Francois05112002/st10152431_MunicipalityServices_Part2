@@ -1,91 +1,119 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using st10152431_MunicipalityService.Data;
 using st10152431_MunicipalityService.Models;
 
 namespace st10152431_MunicipalityService.Services
 {
     public class UserService
     {
-        // DICTIONARY: O(1) lookup by phone number - perfect for login/authentication
-        private static Dictionary<string, User> _users = new Dictionary<string, User>();
+        private readonly AppDbContext _context;
+
+        public UserService(AppDbContext context)
+        {
+            _context = context;
+        }
 
         /// <summary>
         /// Register a new user
+        /// Uses DICTIONARY pattern: O(1) lookup to check if user exists
         /// </summary>
         public bool RegisterUser(string name, string cellphoneNumber)
         {
-            // Check if user already exists (O(1) lookup)
-            if (_users.ContainsKey(cellphoneNumber))
+            // O(1) lookup in database using primary key
+            if (_context.Users.Any(u => u.CellphoneNumber == cellphoneNumber))
             {
                 return false; // User already exists
             }
 
-            // Create new user and add to dictionary (O(1) insertion)
+            // Create new user with empty LIST and HASHSET
             var newUser = new User(name, cellphoneNumber);
-            _users[cellphoneNumber] = newUser;
+
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
 
             return true;
         }
 
         /// <summary>
         /// Login user - returns user if exists, null otherwise
+        /// DICTIONARY pattern: O(1) lookup by phone number (primary key)
         /// </summary>
         public User LoginUser(string cellphoneNumber)
         {
-            // O(1) lookup in dictionary
-            if (_users.TryGetValue(cellphoneNumber, out User user))
-            {
-                return user;
-            }
+            // O(1) lookup using primary key, eagerly load Issues collection
+            var user = _context.Users
+                .Include(u => u.Issues) // Load the LIST of issues
+                .FirstOrDefault(u => u.CellphoneNumber == cellphoneNumber);
 
-            return null; // User not found
-        }
-
-        /// <summary>
-        /// Get user by phone number
-        /// </summary>
-        public User GetUser(string cellphoneNumber)
-        {
-            // O(1) lookup
-            _users.TryGetValue(cellphoneNumber, out User user);
             return user;
         }
 
         /// <summary>
+        /// Get user by phone number
+        /// DICTIONARY pattern: O(1) lookup
+        /// </summary>
+        public User GetUser(string cellphoneNumber)
+        {
+            // O(1) lookup using primary key
+            return _context.Users
+                .Include(u => u.Issues) 
+                .FirstOrDefault(u => u.CellphoneNumber == cellphoneNumber);
+        }
+
+        /// <summary>
         /// Check if user exists
+        /// DICTIONARY pattern: O(1) lookup
         /// </summary>
         public bool UserExists(string cellphoneNumber)
         {
-            // O(1) lookup
-            return _users.ContainsKey(cellphoneNumber);
+            // O(1) lookup using primary key
+            return _context.Users.Any(u => u.CellphoneNumber == cellphoneNumber);
         }
 
         /// <summary>
         /// Add an issue to a user's profile (if logged in)
+        /// LIST pattern: O(1) append operation
         /// </summary>
-        public void AddIssueToUser(string cellphoneNumber, Issue issue)
-        {
-            if (_users.TryGetValue(cellphoneNumber, out User user))
-            {
-                // LIST append is O(1) amortized
-                user.Issues.Add(issue);
-            }
-        }
+        //public void AddIssueToUser(string cellphoneNumber, Issue issue)
+        //{
+        //    var user = _context.Users
+        //        .Include(u => u.Issues)
+        //        .FirstOrDefault(u => u.CellphoneNumber == cellphoneNumber);
+
+        //    if (user != null)
+        //    {
+        //        // LIST append - O(1) amortized
+        //        user.Issues.Add(issue);
+        //        _context.SaveChanges();
+        //    }
+        //}
 
         /// <summary>
         /// Record daily pulse participation for a user
+        /// HASHSET pattern: O(1) add operation with automatic duplicate prevention
         /// Returns true if successfully added, false if already participated today
         /// </summary>
         public bool RecordPulseParticipation(string cellphoneNumber, DateTime date)
         {
-            if (_users.TryGetValue(cellphoneNumber, out User user))
+            var user = _context.Users.Find(cellphoneNumber);
+
+            if (user != null)
             {
                 string dateString = date.ToString("yyyy-MM-dd");
 
                 // HASHSET Add returns false if element already exists (O(1) operation)
                 // This automatically prevents duplicate participation
-                return user.PulseDates.Add(dateString);
+                bool added = user.PulseDates.Add(dateString);
+
+                if (added)
+                {
+                    _context.SaveChanges();
+                }
+
+                return added;
             }
 
             return false;
@@ -93,10 +121,13 @@ namespace st10152431_MunicipalityService.Services
 
         /// <summary>
         /// Check if user has participated in pulse today
+        /// HASHSET pattern: O(1) contains check
         /// </summary>
         public bool HasParticipatedToday(string cellphoneNumber, DateTime date)
         {
-            if (_users.TryGetValue(cellphoneNumber, out User user))
+            var user = _context.Users.Find(cellphoneNumber);
+
+            if (user != null)
             {
                 string dateString = date.ToString("yyyy-MM-dd");
 
@@ -112,7 +143,7 @@ namespace st10152431_MunicipalityService.Services
         /// </summary>
         public int GetTotalUsers()
         {
-            return _users.Count;
+            return _context.Users.Count();
         }
 
         /// <summary>
@@ -120,7 +151,7 @@ namespace st10152431_MunicipalityService.Services
         /// </summary>
         public IEnumerable<User> GetAllUsers()
         {
-            return _users.Values;
+            return _context.Users.Include(u => u.Issues).ToList();
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
@@ -59,8 +59,6 @@ namespace st10152431_MunicipalityService.Pages
 
         public IActionResult OnPost()
         {
-            Console.WriteLine("***********ONPOST WAS CALLED************");
-
             // ===== DEBUG LOGGING AT THE VERY START =====
             Console.WriteLine("========== STARTING ISSUE REPORT ==========");
             Console.WriteLine($"Input object is null: {Input == null}");
@@ -99,57 +97,27 @@ namespace st10152431_MunicipalityService.Pages
             Console.WriteLine($"UserPhone from session: '{userPhone ?? "NULL"}'");
             Console.WriteLine($"Is user logged in: {!string.IsNullOrEmpty(userPhone)}");
 
-            // Add to global list
+            // Add to database - this creates the Issue with UserId foreign key
             int issueId = _reportService.AddIssue(
                 Input.Location,
                 Input.Category,
                 Input.Description,
                 imagePath,
-                userPhone
+                userPhone  // This links the issue to the user automatically!
             );
 
             Console.WriteLine($"Issue ID created: {issueId}");
             Console.WriteLine($"Total issues in system: {_reportService.GetAllIssues().Count}");
 
-            // If logged in, add to user's personal list
+            // ✅ NO NEED TO MANUALLY ADD TO USER'S COLLECTION
+            // EF Core automatically handles the relationship via the UserId foreign key!
             if (!string.IsNullOrEmpty(userPhone))
             {
-                Console.WriteLine("Attempting to add issue to user's list...");
-
-                var user = _userService.GetUser(userPhone);
-
-                Console.WriteLine($"User found: {user != null}");
-
-                if (user != null)
-                {
-                    Console.WriteLine($"User name: {user.Name}");
-                    Console.WriteLine($"User issues count BEFORE: {user.Issues.Count}");
-
-                    var newIssue = new Issue
-                    {
-                        Id = issueId,
-                        Location = Input.Location,
-                        Category = Input.Category,
-                        Description = Input.Description,
-                        ImagePath = imagePath,
-                        Timestamp = DateTime.Now,
-                        UserId = userPhone
-                    };
-
-                    // Use the service method
-                    _userService.AddIssueToUser(userPhone, newIssue);
-
-                    Console.WriteLine($"User issues count AFTER: {user.Issues.Count}");
-                    Console.WriteLine("Issue added to user's list successfully!");
-                }
-                else
-                {
-                    Console.WriteLine("ERROR: User not found in UserService!");
-                }
+                Console.WriteLine($"Issue automatically linked to user {userPhone} via foreign key");
             }
             else
             {
-                Console.WriteLine("Anonymous report - not adding to user list");
+                Console.WriteLine("Anonymous report - no user association");
             }
 
             Console.WriteLine("==========================================");
