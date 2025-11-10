@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using st10152431_MunicipalityService.Data;
 using st10152431_MunicipalityService.Models;
 
 namespace st10152431_MunicipalityService.Services
 {
     public class ReportService
     {
-        // LIST: Stores all issues chronologically (anyone can report, logged in or not)
-        // O(1) append operation
-        private static List<Issue> _allIssues = new List<Issue>();
-
-        // Counter for unique issue IDs
-        private static int _issueCounter = 0;
+        private readonly AppDbContext _context;
 
         // LIST: Fixed category options for the dropdown
         private static readonly List<string> _categories = new List<string>
@@ -25,21 +21,21 @@ namespace st10152431_MunicipalityService.Services
             "Other"
         };
 
-        // DICTIONARY: Stores pulse responses organized by date, then by user phone
-        // Structure: { "2025-10-14" -> { "0817246624" -> "Satisfied", "0823456789" -> "Neutral" } }
-        // O(1) lookup to check if user answered today
-        private static Dictionary<string, Dictionary<string, string>> _pulseResponses =
-            new Dictionary<string, Dictionary<string, string>>();
-
-        // Current daily pulse question
-        private static DailyPulse _currentPulse = new DailyPulse(
+        // Current daily pulse question (could be made dynamic/database-driven later)
+        private static readonly DailyPulse _currentPulse = new DailyPulse(
             DateTime.Now.ToString("yyyy-MM-dd"),
             "How satisfied are you with local road maintenance?",
             new List<string> { "Very satisfied", "Satisfied", "Neutral", "Dissatisfied" }
         );
 
+        public ReportService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         /// <summary>
         /// Get all issue categories
+        /// LIST: Returns fixed list of categories
         /// </summary>
         public List<string> GetCategories()
         {
@@ -49,15 +45,13 @@ namespace st10152431_MunicipalityService.Services
         /// <summary>
         /// Add a new issue to the system
         /// Anyone can report (logged in or anonymous)
+        /// LIST pattern: O(1) append operation
         /// </summary>
         public int AddIssue(string location, string category, string description,
                            string imagePath, string userId = null)
         {
-            _issueCounter++;
-
             var issue = new Issue
             {
-                Id = _issueCounter,
                 Location = location,
                 Category = category,
                 Description = description,
@@ -67,34 +61,43 @@ namespace st10152431_MunicipalityService.Services
             };
 
             // LIST append is O(1) amortized
-            _allIssues.Add(issue);
+            _context.Issues.Add(issue);
+            _context.SaveChanges();
 
             return issue.Id;
         }
 
         /// <summary>
         /// Get all issues (for admin/viewing purposes)
+        /// Returns as LIST maintaining chronological order
         /// </summary>
         public List<Issue> GetAllIssues()
         {
-            return _allIssues;
+            return _context.Issues.OrderBy(i => i.Timestamp).ToList();
         }
 
         /// <summary>
         /// Get issues by user
+        /// LIST pattern: Filter and return as list
         /// </summary>
         public List<Issue> GetIssuesByUser(string userId)
         {
-            // Filter the list to get user's issues
-            return _allIssues.Where(i => i.UserId == userId).ToList();
+            return _context.Issues
+                .Where(i => i.UserId == userId)
+                .OrderBy(i => i.Timestamp)
+                .ToList();
         }
 
         /// <summary>
         /// Get issues by category
+        /// LIST pattern: Filter and return as list
         /// </summary>
         public List<Issue> GetIssuesByCategory(string category)
         {
-            return _allIssues.Where(i => i.Category == category).ToList();
+            return _context.Issues
+                .Where(i => i.Category == category)
+                .OrderBy(i => i.Timestamp)
+                .ToList();
         }
 
         /// <summary>
@@ -102,7 +105,7 @@ namespace st10152431_MunicipalityService.Services
         /// </summary>
         public int GetTotalIssuesCount()
         {
-            return _allIssues.Count;
+            return _context.Issues.Count();
         }
 
         // ===== DAILY PULSE METHODS =====
@@ -117,21 +120,16 @@ namespace st10152431_MunicipalityService.Services
 
         /// <summary>
         /// Check if user has already answered today's pulse
-        /// O(1) lookup using nested dictionaries
+        /// O(1) lookup using compound index (Date + UserId)
         /// </summary>
         public bool HasAnsweredToday(string userId, string date)
         {
             if (string.IsNullOrEmpty(userId))
                 return false;
 
-            // Check if date exists in responses (O(1))
-            if (_pulseResponses.ContainsKey(date))
-            {
-                // Check if user answered on this date (O(1))
-                return _pulseResponses[date].ContainsKey(userId);
-            }
-
-            return false;
+            // O(1) lookup using indexed columns
+            return _context.PulseResponses
+                .Any(p => p.Date == date && p.UserId == userId);
         }
 
         /// <summary>
@@ -139,18 +137,16 @@ namespace st10152431_MunicipalityService.Services
         /// </summary>
         public string GetUserAnswerToday(string userId, string date)
         {
-            if (_pulseResponses.ContainsKey(date) &&
-                _pulseResponses[date].ContainsKey(userId))
-            {
-                return _pulseResponses[date][userId];
-            }
+            var response = _context.PulseResponses
+                .FirstOrDefault(p => p.Date == date && p.UserId == userId);
 
-            return null;
+            return response?.Answer;
         }
 
         /// <summary>
         /// Submit pulse answer
         /// Returns true if successful, false if already answered
+        /// Uses database constraint to prevent duplicates
         /// </summary>
         public bool SubmitPulseAnswer(string userId, string date, string answer)
         {
@@ -161,63 +157,49 @@ namespace st10152431_MunicipalityService.Services
             if (HasAnsweredToday(userId, date))
                 return false;
 
-            // Initialize date dictionary if it doesn't exist
-            if (!_pulseResponses.ContainsKey(date))
+            var response = new PulseResponse
             {
-                _pulseResponses[date] = new Dictionary<string, string>();
+                Date = date,
+                UserId = userId,
+                Answer = answer,
+                CreatedAt = DateTime.Now
+            };
+
+            try
+            {
+                // O(1) insertion
+                _context.PulseResponses.Add(response);
+                _context.SaveChanges();
+                return true;
             }
-
-            // Store the answer (O(1) insertion)
-            _pulseResponses[date][userId] = answer;
-
-            return true;
+            catch
+            {
+                // Unique constraint violation (user already answered)
+                return false;
+            }
         }
 
         /// <summary>
         /// Get all responses for a specific date (for analytics)
+        /// Returns as DICTIONARY for O(1) lookups
         /// </summary>
         public Dictionary<string, string> GetResponsesForDate(string date)
         {
-            if (_pulseResponses.ContainsKey(date))
-            {
-                return _pulseResponses[date];
-            }
-
-            return new Dictionary<string, string>();
+            return _context.PulseResponses
+                .Where(p => p.Date == date)
+                .ToDictionary(p => p.UserId, p => p.Answer);
         }
 
         /// <summary>
         /// Get pulse response statistics for today
-        /// Returns count of each choice
+        /// Returns count of each choice as DICTIONARY
         /// </summary>
         public Dictionary<string, int> GetTodayPulseStats(string date)
         {
-            var stats = new Dictionary<string, int>();
-
-            if (_pulseResponses.ContainsKey(date))
-            {
-                var responses = _pulseResponses[date];
-
-                // Count each answer choice
-                foreach (var response in responses.Values)
-                {
-                    if (stats.ContainsKey(response))
-                        stats[response]++;
-                    else
-                        stats[response] = 1;
-                }
-            }
-
-            return stats;
-        }
-
-        /// <summary>
-        /// Update daily pulse question (for admin)
-        /// </summary>
-        public void UpdateDailyPulse(string question, List<string> choices)
-        {
-            string today = DateTime.Now.ToString("yyyy-MM-dd");
-            _currentPulse = new DailyPulse(today, question, choices);
+            return _context.PulseResponses
+                .Where(p => p.Date == date)
+                .GroupBy(p => p.Answer)
+                .ToDictionary(g => g.Key, g => g.Count());
         }
     }
 }

@@ -1,26 +1,36 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace st10152431_MunicipalityService.Models
 {
-    /// <summary>
-    /// User model representing a registered user
-    /// Uses DICTIONARY for fast lookup by phone number in UserService
-    /// </summary>
     public class User
     {
         public string Name { get; set; }
         public string CellphoneNumber { get; set; }
 
-        // LIST: Preserves chronological order of issues reported by this user
+        // LIST: Issues collection (EF Core will create a foreign key relationship)
         public List<Issue> Issues { get; set; }
 
-        // HASHSET: Prevents duplicate pulse participation per day, O(1) lookup
-        // Stores dates in "yyyy-MM-dd" format
+        // HASHSET: Pulse dates - stored as string in database, converted to HashSet in code
+        [NotMapped] // This property won't be stored directly
         public HashSet<string> PulseDates { get; set; }
 
-        // Computed properties for easy display
-        public int IssuesReported => Issues.Count;
-        public int DailyPulsesCompleted => PulseDates.Count;
+        // This property stores the HashSet as a delimited string in the database
+        public string PulseDatesString
+        {
+            get => PulseDates != null ? string.Join(",", PulseDates) : "";
+            set => PulseDates = !string.IsNullOrEmpty(value)
+                ? new HashSet<string>(value.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                : new HashSet<string>();
+        }
+
+        // Computed properties
+        [NotMapped]
+        public int IssuesReported => Issues?.Count ?? 0;
+
+        [NotMapped]
+        public int DailyPulsesCompleted => PulseDates?.Count ?? 0;
 
         public User()
         {
