@@ -14,18 +14,19 @@ namespace st10152431_MunicipalityService.Pages
         private readonly EventService _eventService;
         private readonly UserService _userService;
 
-        // Filter properties
+        public List<SelectListItem> EventCategories { get; set; }
+        public List<SelectListItem> AnnouncementCategories { get; set; }
+
+
+        // Unified filter properties
         [BindProperty(SupportsGet = true)]
-        public string EventCategoryFilter { get; set; }
+        public string CategoryFilter { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public DateTime? EventDateFilter { get; set; }
+        public DateTime? DateFilter { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public string AnnouncementCategoryFilter { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public DateTime? AnnouncementDateFilter { get; set; }
+        public string TypeFilter { get; set; }
 
         // New item properties
         [BindProperty]
@@ -35,10 +36,10 @@ namespace st10152431_MunicipalityService.Pages
         public Announcement NewAnnouncement { get; set; }
 
         // Display properties
-        public List<Event> FilteredEvents { get; set; }
-        public List<Announcement> FilteredAnnouncements { get; set; }
-        public SelectList EventCategories { get; set; }
-        public SelectList AnnouncementCategories { get; set; }
+        public List<Event> FilteredEvents { get; set; } = new();
+        public List<Announcement> FilteredAnnouncements { get; set; } = new();
+        public List<string> AllCategories { get; set; } = new();
+
         public bool IsLoggedIn { get; set; }
         public string Message { get; set; }
 
@@ -59,27 +60,59 @@ namespace st10152431_MunicipalityService.Pages
             var userPhone = HttpContext.Session.GetString("UserPhone");
             IsLoggedIn = !string.IsNullOrEmpty(userPhone);
 
-            // Load category dropdowns with "All Categories" option
-            var eventCats = new List<string> { "All Categories" };
-            eventCats.AddRange(_eventService.GetEventCategories());
-            EventCategories = new SelectList(eventCats);
+            EventCategories = _eventService.GetEventCategories()
+    .Select(c => new SelectListItem { Value = c, Text = c }).ToList();
 
-            var announcementCats = new List<string> { "All Categories" };
-            announcementCats.AddRange(_eventService.GetAnnouncementCategories());
-            AnnouncementCategories = new SelectList(announcementCats);
+            AnnouncementCategories = _eventService.GetAnnouncementCategories()
+                .Select(c => new SelectListItem { Value = c, Text = c }).ToList();
 
-            // Apply filters using LIST filtering (O(n) but acceptable)
-            FilteredEvents = _eventService.FilterEvents(EventCategoryFilter, EventDateFilter);
-            FilteredAnnouncements = _eventService.FilterAnnouncements(
-                AnnouncementCategoryFilter,
-                AnnouncementDateFilter);
+
+            // Get all events and announcements (active only)
+            var allEvents = _eventService.GetAllEvents();
+            var allAnnouncements = _eventService.GetAllAnnouncements();
+
+            // Build category list for filter dropdown
+            AllCategories = allEvents.Select(e => e.Category)
+                .Concat(allAnnouncements.Select(a => a.Category))
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+
+            // Filtering
+            if (!string.IsNullOrEmpty(CategoryFilter))
+            {
+                allEvents = allEvents.Where(e => e.Category == CategoryFilter).ToList();
+                allAnnouncements = allAnnouncements.Where(a => a.Category == CategoryFilter).ToList();
+            }
+
+            if (DateFilter.HasValue)
+            {
+                allEvents = allEvents.Where(e => e.EndDate >= DateFilter.Value).ToList();
+                allAnnouncements = allAnnouncements.Where(a => a.EndDate >= DateFilter.Value).ToList();
+            }
+            else
+            {
+                // Default: only show future or current items
+                allEvents = allEvents.Where(e => e.EndDate >= DateTime.Today).ToList();
+                allAnnouncements = allAnnouncements.Where(a => a.EndDate >= DateTime.Today).ToList();
+            }
+
+            if (TypeFilter == "Event")
+            {
+                allAnnouncements.Clear();
+            }
+            else if (TypeFilter == "Announcement")
+            {
+                allEvents.Clear();
+            }
+
+            FilteredEvents = allEvents;
+            FilteredAnnouncements = allAnnouncements;
         }
 
         public IActionResult OnPostCreateEvent()
         {
-            // Check if user is logged in FIRST
             var userPhone = HttpContext.Session.GetString("UserPhone");
-
             if (string.IsNullOrEmpty(userPhone))
             {
                 ModelState.AddModelError(string.Empty, "You must be logged in to create events.");
@@ -87,7 +120,6 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
 
-            // Manual validation instead of ModelState.IsValid
             if (string.IsNullOrWhiteSpace(NewEvent?.Name))
             {
                 ModelState.AddModelError(string.Empty, "Event name is required.");
@@ -95,7 +127,7 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
 
-            if (string.IsNullOrWhiteSpace(NewEvent?.Category) || NewEvent.Category == "All Categories")
+            if (string.IsNullOrWhiteSpace(NewEvent?.Category))
             {
                 ModelState.AddModelError(string.Empty, "Please select a valid category.");
                 LoadPageData();
@@ -109,7 +141,6 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
 
-            // Validate dates
             if (NewEvent.EndDate < NewEvent.StartDate)
             {
                 ModelState.AddModelError(string.Empty, "End date must be after start date.");
@@ -119,19 +150,16 @@ namespace st10152431_MunicipalityService.Pages
 
             try
             {
-                // Add event to LIST (O(1) append)
                 int eventId = _eventService.AddEvent(
                     NewEvent.Name,
                     NewEvent.StartDate,
                     NewEvent.EndDate,
                     NewEvent.Category,
                     NewEvent.Location,
-                    userPhone  // ← This gets set here!
+                    userPhone
                 );
 
                 TempData["SuccessMessage"] = $"Event '{NewEvent.Name}' created successfully!";
-
-                // Redirect to clear form
                 return RedirectToPage();
             }
             catch (Exception ex)
@@ -144,9 +172,7 @@ namespace st10152431_MunicipalityService.Pages
 
         public IActionResult OnPostCreateAnnouncement()
         {
-            // Check if user is logged in FIRST
             var userPhone = HttpContext.Session.GetString("UserPhone");
-
             if (string.IsNullOrEmpty(userPhone))
             {
                 ModelState.AddModelError(string.Empty, "You must be logged in to create announcements.");
@@ -154,7 +180,6 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
 
-            // Manual validation instead of ModelState.IsValid
             if (string.IsNullOrWhiteSpace(NewAnnouncement?.Name))
             {
                 ModelState.AddModelError(string.Empty, "Announcement name is required.");
@@ -162,7 +187,7 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
 
-            if (string.IsNullOrWhiteSpace(NewAnnouncement?.Category) || NewAnnouncement.Category == "All Categories")
+            if (string.IsNullOrWhiteSpace(NewAnnouncement?.Category))
             {
                 ModelState.AddModelError(string.Empty, "Please select a valid category.");
                 LoadPageData();
@@ -176,7 +201,6 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
 
-            // Validate dates
             if (NewAnnouncement.EndDate < NewAnnouncement.StartDate)
             {
                 ModelState.AddModelError(string.Empty, "End date must be after start date.");
@@ -186,19 +210,16 @@ namespace st10152431_MunicipalityService.Pages
 
             try
             {
-                // Add announcement to LIST (O(1) append)
                 int announcementId = _eventService.AddAnnouncement(
                     NewAnnouncement.Name,
                     NewAnnouncement.StartDate,
                     NewAnnouncement.EndDate,
                     NewAnnouncement.Category,
                     NewAnnouncement.Location,
-                    userPhone  // ← This gets set here!
+                    userPhone
                 );
 
                 TempData["SuccessMessage"] = $"Announcement '{NewAnnouncement.Name}' created successfully!";
-
-                // Redirect to clear form
                 return RedirectToPage();
             }
             catch (Exception ex)
@@ -210,3 +231,4 @@ namespace st10152431_MunicipalityService.Pages
         }
     }
 }
+
