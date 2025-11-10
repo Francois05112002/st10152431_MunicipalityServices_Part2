@@ -3,10 +3,11 @@
     if (!form) return;
 
     const fields = [
-        form.querySelector('[name="Location"]'),
-        form.querySelector('[name="Category"]'),
-        form.querySelector('[name="Description"]')
+        form.querySelector('[name="Input.Location"]'),
+        form.querySelector('[name="Input.Category"]'),
+        form.querySelector('[name="Input.Description"]')
     ];
+
     const progressBar = document.getElementById('form-progress-bar');
 
     function updateProgress() {

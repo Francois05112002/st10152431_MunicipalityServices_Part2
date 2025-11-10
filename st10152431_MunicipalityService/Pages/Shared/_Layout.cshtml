@@ -8,6 +8,16 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MunicipalityServicesPROG7312.styles.css" asp-append-version="true" />
+    <style>
+        h1, .main-heading {
+            font-family: 'Monospace', monospace;
+            font-size: 3rem;
+            color: #417a4a;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+    </style>
 </head>
 
 <body class="main-bg">
@@ -23,9 +33,9 @@
                 <a class="nav-link" asp-page="/Privacy">Privacy</a>
                 <a class="nav-link" asp-page="/Register">Account</a>
                 <a class="nav-link" asp-page="/Report">Report</a>
-                <a class="nav-link" asp-page="/Events">Events</a>
-                @*<a class="nav-link" asp-page="/Status/Status">Status</a> *@
-            </nav>
+				<a class="nav-link" asp-page="/Events">Events</a>
+				<a class="nav-link" asp-page="/Status">Status</a>
+			</nav>
         </div>
     </header>
 
@@ -50,5 +60,8 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
 </body>
 </html>

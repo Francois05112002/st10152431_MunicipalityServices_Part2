@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using st10152431_MunicipalityService.Services;
 using st10152431_MunicipalityService.Models;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace st10152431_MunicipalityService.Pages
 {
@@ -22,13 +24,17 @@ namespace st10152431_MunicipalityService.Pages
 
         public class InputModel
         {
+            [Required(ErrorMessage = "Name is required")]
+            [RegularExpression(@"^[A-Za-z\s]+$", ErrorMessage = "Name must contain only letters and spaces")]
             public string Name { get; set; }
+
+            [Required(ErrorMessage = "Cellphone number is required")]
+            [RegularExpression(@"^\d{10}$", ErrorMessage = "Cellphone number must be exactly 10 digits")]
             public string CellphoneNumber { get; set; }
         }
 
         public void OnGet()
         {
-            // Always reload user from service for fresh data
             var loggedInPhone = HttpContext.Session.GetString("UserPhone");
             if (!string.IsNullOrEmpty(loggedInPhone))
             {
@@ -50,18 +56,33 @@ namespace st10152431_MunicipalityService.Pages
 
         private IActionResult HandleRegister()
         {
-            if (string.IsNullOrWhiteSpace(Input.Name) || string.IsNullOrWhiteSpace(Input.CellphoneNumber))
+            // Server-side validation
+            if (!ModelState.IsValid)
             {
-                Message = "Please provide both name and cellphone number.";
+                Message = "Please correct the errors and try again.";
                 return Page();
             }
 
-            bool success = _userService.RegisterUser(Input.Name, Input.CellphoneNumber);
+            // Defensive validation (in case client-side is bypassed)
+            if (!Regex.IsMatch(Input.Name ?? "", @"^[A-Za-z\s]+$"))
+            {
+                ModelState.AddModelError("Input.Name", "Name must contain only letters and spaces");
+                Message = "Please correct the errors and try again.";
+                return Page();
+            }
+            if (!Regex.IsMatch(Input.CellphoneNumber ?? "", @"^\d{10}$"))
+            {
+                ModelState.AddModelError("Input.CellphoneNumber", "Cellphone number must be exactly 10 digits");
+                Message = "Please correct the errors and try again.";
+                return Page();
+            }
+
+            bool success = _userService.RegisterUser(Input.Name.Trim(), Input.CellphoneNumber.Trim());
 
             if (success)
             {
-                HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber);
-                UserProfile = _userService.GetUser(Input.CellphoneNumber);
+                HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber.Trim());
+                UserProfile = _userService.GetUser(Input.CellphoneNumber.Trim());
                 Message = "Registration successful! You are now logged in.";
             }
             else
@@ -74,17 +95,25 @@ namespace st10152431_MunicipalityService.Pages
 
         private IActionResult HandleLogin()
         {
+            // Only validate cellphone for login
             if (string.IsNullOrWhiteSpace(Input.CellphoneNumber))
             {
+                ModelState.AddModelError("Input.CellphoneNumber", "Cellphone number is required");
                 Message = "Please provide a cellphone number.";
                 return Page();
             }
+            if (!Regex.IsMatch(Input.CellphoneNumber ?? "", @"^\d{10}$"))
+            {
+                ModelState.AddModelError("Input.CellphoneNumber", "Cellphone number must be exactly 10 digits");
+                Message = "Please enter a valid 10-digit cellphone number.";
+                return Page();
+            }
 
-            User user = _userService.LoginUser(Input.CellphoneNumber);
+            User user = _userService.LoginUser(Input.CellphoneNumber.Trim());
 
             if (user != null)
             {
-                HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber);
+                HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber.Trim());
                 UserProfile = user;
                 Message = $"Welcome back, {user.Name}!";
             }

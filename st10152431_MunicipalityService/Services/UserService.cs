@@ -16,6 +16,13 @@ namespace st10152431_MunicipalityService.Services
             _context = context;
         }
 
+
+        public void UpdateUser(User user)
+        {
+            _context.Users.Update(user);
+            _context.SaveChanges();
+        }
+
         /// <summary>
         /// Register a new user
         /// Uses DICTIONARY pattern: O(1) lookup to check if user exists

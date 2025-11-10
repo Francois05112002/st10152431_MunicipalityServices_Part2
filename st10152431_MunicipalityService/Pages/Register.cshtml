@@ -4,52 +4,67 @@
     ViewData["Title"] = "Register page";
 }
 
+<h1 class="main-heading"> Service Register & Log-In</h1>
+
 <div class="register-container">
 
     @if (Model.UserProfile == null)
     {
         <div class="form-blocks" style="display: flex; gap: 32px;">
             <!-- Register Block -->
-            <div class="register-block" style="flex:1; border:1px solid #ccc; border-radius:12px; padding:24px;">
-                <h2>Register</h2>
+            <div class="register-block" style="flex:1; border:2.5px solid #e6b13a; border-radius:12px; padding:24px; background:#fff; color:#e6b13a;">
+                <h2 style="color:#e6b13a;">Register</h2>
                 <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div>
-                        <label asp-for="Input.Name">Name</label>
+                        <label asp-for="Input.Name" style="color:#e6b13a;">Name</label>
                         <input asp-for="Input.Name" />
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
                     </div>
-                    <div>
-                        <label asp-for="Input.CellphoneNumber">Cellphone Number</label>
+                    <div style="margin-top:5px">
+                        <label asp-for="Input.CellphoneNumber" style="color:#e6b13a;">Cellphone Number</label>
                         <input asp-for="Input.CellphoneNumber" />
+                        <span asp-validation-for="Input.CellphoneNumber" class="text-danger"></span>
                     </div>
-                    <button type="submit" name="action" value="register">Register</button>
+                    <button type="submit" name="action" value="register" style="background:#e6b13a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; margin-top:12px;">Register</button>
                 </form>
+
             </div>
             <!-- Log-In Block -->
-            <div class="login-block" style="flex:1; border:1px solid #ccc; border-radius:12px; padding:24px;">
-                <h2>Log In</h2>
+            <div class="login-block" style="flex:1; border:2.5px solid #417a4a; border-radius:12px; padding:24px; background:#fff; color:#417a4a;">
+                <h2 style="color:#417a4a;">Log In</h2>
                 <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div>
-                        <label asp-for="Input.CellphoneNumber">Cellphone Number</label>
-                        <input asp-for="Input.CellphoneNumber" />
+                        <label asp-for="Input.CellphoneNumber" style="color:#417a4a;">Cellphone Number</label>
+                        <input asp-for="Input.CellphoneNumber" inputmode="numeric" pattern="\d{10}" maxlength="10" />
+                        <span asp-validation-for="Input.CellphoneNumber" class="text-danger"></span>
                     </div>
-                    <button type="submit" name="action" value="login">Log In</button>
+                    <button type="submit" name="action" value="login" style="background:#417a4a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; margin-top:12px;">Log In</button>
                 </form>
             </div>
         </div>
     }
     else
     {
-        <div class="profile-section" style="border:1px solid #417a4a; border-radius:12px; padding:24px; background:#f6fff6;">
-            <h3>Your Profile</h3>
-            <p><strong>Name:</strong> @Model.UserProfile.Name</p>
-            <p><strong>Cellphone:</strong> @Model.UserProfile.CellphoneNumber</p>
-            <p><strong>Issues Reported:</strong> @Model.UserProfile.IssuesReported</p>
-            <p><strong>Daily Pulses Completed:</strong> @Model.UserProfile.DailyPulsesCompleted</p>
-            <form method="post">
-                <button type="submit" name="action" value="logout">Log Out</button>
-            </form>
+        <div style="display: flex; justify-content: center; align-items: center; min-height: 340px; margin-top: 32px;">
+            <div style="background: #417a4a; border-radius: 18px; padding: 6px;">
+                <div style="background: #fff; border: 3px solid #e6b13a; border-radius: 14px; padding: 36px 44px; color: #222; font-size: 1.25rem; font-family: monospace; min-width: 370px; box-shadow: 0 2px 12px #0001;">
+                    <div style="margin-bottom: 18px; font-size: 1.35rem; font-weight: bold;">
+                        Welcome back, @Model.UserProfile.Name!
+                    </div>
+                    <p style="margin: 0 0 10px 0;"><strong>Name:</strong> @Model.UserProfile.Name</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Cellphone:</strong> @Model.UserProfile.CellphoneNumber</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Issues Reported:</strong> @Model.UserProfile.IssuesReported</p>
+                    <p style="margin: 0 0 18px 0;"><strong>Daily Pulses Completed:</strong> @Model.UserProfile.DailyPulsesCompleted</p>
+                    <form method="post">
+                        <button type="submit" name="action" value="logout" style="font-size: 1.1rem; padding: 8px 28px; border-radius: 7px; border: 1.5px solid #417a4a; background: #fff; color: #417a4a; font-family: monospace; font-weight: bold; cursor: pointer;">Log Out</button>
+                    </form>
+                </div>
+            </div>
         </div>
     }
+
 
     @if (!string.IsNullOrEmpty(Model.Message))
     {

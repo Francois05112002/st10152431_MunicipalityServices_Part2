@@ -1,21 +1,65 @@
 ﻿@page
-@model PrivacyModel
+@model st10152431_MunicipalityService.Pages.PrivacyModel
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacy Policy & User Guide";
 }
 
-<div class="index-content">
-    <h1 class="report-issues-heading">Privacy Policy and User Guide</h1>
+<h1 class="main-heading">Privacy Policy & User Guide</h1>
 
-    <div class="privacy-content">
-        <p>
-            This page must explain in depth that a user does not have to sign-up or log in to report issues in the area but if a user wants to earn data points they must register with only their phone-number.
-        </p>
-        <p>
-            Next, this page should also explain how the points system works and what users can do to earn points and how much per task.
-        </p>
-        <p>
-            Also touch on how the user information is just storing the cellphone number and that each user submission is private.
-        </p>
+<div style="max-width: 930px; margin: 0 auto;">
+
+    <div style="background: #fff; border: 2.5px solid #e6b13a; border-radius: 14px; box-shadow: 0 2px 12px #0001; padding: 28px 24px 20px 24px; margin-bottom: 2.2rem;">
+        <h2 style="color: #417a4a; font-size: 1.5rem; font-family: monospace; margin-bottom: 0.7rem;">How to Use & Navigate the System</h2>
+        <ul style="margin-left: 1.2rem;">
+            <li>No sign-up is required to report local issues or view public information.</li>
+            <li>To earn data points and rewards, simply register with your <b>name</b> and <b>cellphone number</b>—no other personal details are needed.</li>
+            <li>Navigation is easy: use the menu at the top to access all main features.</li>
+        </ul>
     </div>
+
+    <div style="background: #fff; border: 2.5px solid #e6b13a; border-radius: 14px; box-shadow: 0 2px 12px #0001; padding: 28px 24px 20px 24px; margin-bottom: 2.2rem;">
+        <h2 style="color: #417a4a; font-size: 1.5rem; font-family: monospace; margin-bottom: 0.7rem;">Quick Links to Pages</h2>
+        <ul style="margin-left: 1.2rem;">
+            <li><a asp-page="/Index" style="color:#417a4a; text-decoration:underline;">Home</a> – Overview and main actions</li>
+            <li><a asp-page="/Report" style="color:#417a4a; text-decoration:underline;">Report</a> – Report local issues and, if logged in, answer the daily pulse</li>
+            <li><a asp-page="/Events" style="color:#417a4a; text-decoration:underline;">Events</a> – View and (if logged in) create local events</li>
+            <li><a asp-page="/Status" style="color:#417a4a; text-decoration:underline;">Status</a> – Check the status of your service requests</li>
+            <li><a asp-page="/Account" style="color:#417a4a; text-decoration:underline;">Account</a> – Register, log in, and view your points</li>
+        </ul>
+    </div>
+
+    <div style="background: #fff; border: 2.5px solid #e6b13a; border-radius: 14px; box-shadow: 0 2px 12px #0001; padding: 28px 24px 20px 24px; margin-bottom: 2.2rem;">
+        <h2 style="color: #417a4a; font-size: 1.5rem; font-family: monospace; margin-bottom: 0.7rem;">Points & Rewards System</h2>
+        <ul style="margin-left: 1.2rem;">
+            <li>After logging in, you can answer the <b>Daily Pulse</b> (a quick question on the Report page) for <b>10 points</b> per day.</li>
+            <li>Reporting a problem while logged in earns you <b>5 points</b> per report.</li>
+            <li>Once you reach <b>100 points</b>, you will receive <b>2GB of Vodacom data</b> as a reward.</li>
+        </ul>
+    </div>
+
+    <div style="background: #fff; border: 2.5px solid #e6b13a; border-radius: 14px; box-shadow: 0 2px 12px #0001; padding: 28px 24px 20px 24px; margin-bottom: 2.2rem;">
+        <h2 style="color: #417a4a; font-size: 1.5rem; font-family: monospace; margin-bottom: 0.7rem;">Privacy & Data Protection</h2>
+        <ul style="margin-left: 1.2rem;">
+            <li>Registration only requires your <b>name</b> and <b>cellphone number</b>.</li>
+            <li>Your information is kept private and secure. We only use your details to track your points and rewards.</li>
+            <li>All issue reports and pulse answers are stored anonymously unless you are logged in for points.</li>
+        </ul>
+    </div>
+
+    <div style="background: #fff; border: 2.5px solid #e6b13a; border-radius: 14px; box-shadow: 0 2px 12px #0001; padding: 28px 24px 20px 24px; margin-bottom: 2.2rem;">
+        <h2 style="color: #417a4a; font-size: 1.5rem; font-family: monospace; margin-bottom: 0.7rem;">Events & Announcements</h2>
+        <ul style="margin-left: 1.2rem;">
+            <li>All users can view events and announcements.</li>
+            <li>Only logged-in users can create events or announcements (up to <b>3 per day</b> per account).</li>
+        </ul>
+    </div>
+
+    <div style="background: #fff; border: 2.5px solid #e6b13a; border-radius: 14px; box-shadow: 0 2px 12px #0001; padding: 28px 24px 20px 24px; margin-bottom: 2.2rem;">
+        <h2 style="color: #417a4a; font-size: 1.5rem; font-family: monospace; margin-bottom: 0.7rem;">Service Request Status</h2>
+        <ul style="margin-left: 1.2rem;">
+            <li>Use the <b>Status</b> page to check the progress of your reported service requests.</li>
+            <li>Simply enter your request details to view updates and resolution status.</li>
+        </ul>
+    </div>
+
 </div>

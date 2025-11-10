@@ -9,6 +9,11 @@ namespace st10152431_MunicipalityService.Models
         public string Name { get; set; }
         public string CellphoneNumber { get; set; }
 
+        // Persistent properties for tracking
+        public int IssuesReported { get; set; }
+        public int DailyPulsesCompleted { get; set; }
+        public int TotalDataPoints { get; set; }
+
         // LIST: Issues collection (EF Core will create a foreign key relationship)
         public List<Issue> Issues { get; set; }
 
@@ -21,16 +26,9 @@ namespace st10152431_MunicipalityService.Models
         {
             get => PulseDates != null ? string.Join(",", PulseDates) : "";
             set => PulseDates = !string.IsNullOrEmpty(value)
-                ? new HashSet<string>(value.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                ? new HashSet<string>(value.Split(',', System.StringSplitOptions.RemoveEmptyEntries))
                 : new HashSet<string>();
         }
-
-        // Computed properties
-        [NotMapped]
-        public int IssuesReported => Issues?.Count ?? 0;
-
-        [NotMapped]
-        public int DailyPulsesCompleted => PulseDates?.Count ?? 0;
 
         public User()
         {
@@ -47,3 +45,4 @@ namespace st10152431_MunicipalityService.Models
         }
     }
 }
+

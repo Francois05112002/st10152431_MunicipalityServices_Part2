@@ -113,7 +113,12 @@ namespace st10152431_MunicipalityService.Pages
             // EF Core automatically handles the relationship via the UserId foreign key!
             if (!string.IsNullOrEmpty(userPhone))
             {
-                Console.WriteLine($"Issue automatically linked to user {userPhone} via foreign key");
+                var user = _userService.GetUser(userPhone);
+                if (user != null)
+                {
+                    user.IssuesReported++;
+                    _userService.UpdateUser(user); // You need this method to save changes
+                }
             }
             else
             {
@@ -155,8 +160,8 @@ namespace st10152431_MunicipalityService.Pages
             {
                 var user = _userService.GetUser(userPhone);
                 if (user != null)
-                    user.PulseDates.Add(today);
-
+                    user.DailyPulsesCompleted++;
+                _userService.UpdateUser(user);
                 Message = "Thank you for participating in today's community pulse!";
             }
             else
