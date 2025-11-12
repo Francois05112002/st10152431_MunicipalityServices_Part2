@@ -14,6 +14,8 @@ namespace st10152431_MunicipalityService.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<PulseResponse> PulseResponses { get; set; }
+        public DbSet<ServiceRequest> ServiceRequests { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -68,7 +70,7 @@ namespace st10152431_MunicipalityService.Data
             });
 
             // ===== SEED TEST DATA =====
-            SeedData(modelBuilder);
+            //SeedData(modelBuilder);
         }
 
         private void SeedData(ModelBuilder modelBuilder)

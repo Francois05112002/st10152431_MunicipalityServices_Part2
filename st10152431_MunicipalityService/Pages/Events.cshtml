@@ -6,48 +6,6 @@
 
 <h1 class="main-heading">Local Events & Announcements</h1>
 
-<!-- Top Add Blocks -->
-<div style="display:flex; gap:32px; justify-content:center; margin-bottom:36px;">
-    <!-- Add New Event -->
-    <div style="background:#fff; color:#e6b13a; border:2.5px solid #e6b13a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
-        <h2 style="color:#e6b13a; font-size:1.3rem; margin-bottom:18px;">Add New Event</h2>
-        @if (Model.IsLoggedIn)
-        {
-            <form method="post" asp-page-handler="CreateEvent" style="width:100%;">
-                <div><label style="color:#e6b13a;">Event Name:</label><input asp-for="NewEvent.Name" required style="width:100%;" /></div>
-                <div><label style="color:#e6b13a;">Start Date:</label><input asp-for="NewEvent.StartDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#e6b13a;">End Date:</label><input asp-for="NewEvent.EndDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#e6b13a;">Category:</label><select asp-for="NewEvent.Category" asp-items="Model.EventCategories" style="width:100%;"></select></div>
-                <div><label style="color:#e6b13a;">Location:</label><input asp-for="NewEvent.Location" required style="width:100%;" /></div>
-                <button type="submit" style="margin-top:12px; background:#e6b13a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Event</button>
-            </form>
-        }
-        else
-        {
-            <div style="color:#e6b13a; margin-top:12px;">Log in to create events.</div>
-        }
-    </div>
-    <!-- Add New Announcement -->
-    <div style="background:#fff; color:#417a4a; border:2.5px solid #417a4a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
-        <h2 style="color:#417a4a; font-size:1.3rem; margin-bottom:18px;">Add New Announcement</h2>
-        @if (Model.IsLoggedIn)
-        {
-            <form method="post" asp-page-handler="CreateAnnouncement" style="width:100%;">
-                <div><label style="color:#417a4a;">Announcement Name:</label><input asp-for="NewAnnouncement.Name" required style="width:100%;" /></div>
-                <div><label style="color:#417a4a;">Start Date:</label><input asp-for="NewAnnouncement.StartDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#417a4a;">End Date:</label><input asp-for="NewAnnouncement.EndDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#417a4a;">Category:</label><select asp-for="NewAnnouncement.Category" asp-items="Model.AnnouncementCategories" style="width:100%;"></select></div>
-                <div><label style="color:#417a4a;">Location:</label><input asp-for="NewAnnouncement.Location" required style="width:100%;" /></div>
-                <button type="submit" style="margin-top:12px; background:#417a4a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Announcement</button>
-            </form>
-        }
-        else
-        {
-            <div style="color:#417a4a; margin-top:12px;">Log in to create announcements.</div>
-        }
-    </div>
-</div>
-
 <!-- Main List Block with double border -->
 <div style="background:#417a4a; border-radius:20px; padding:4px; max-width:1150px; margin:0 auto 32px auto;">
     <div style="background:#fff; border:2.5px solid #e6b13a; border-radius:16px; box-shadow:0 2px 12px #0001; padding:36px 32px 32px 32px;">
@@ -103,6 +61,48 @@
                 }
             </ul>
         </div>
+    </div>
+</div>
+
+<!-- Top Add Blocks -->
+<div style="display:flex; gap:32px; justify-content:center; margin-bottom:36px;">
+    <!-- Add New Event -->
+    <div style="background:#fff; color:#e6b13a; border:2.5px solid #e6b13a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
+        <h2 style="color:#e6b13a; font-size:1.3rem; margin-bottom:18px;">Add New Event</h2>
+        @if (Model.IsLoggedIn)
+        {
+            <form method="post" asp-page-handler="CreateEvent" style="width:100%;">
+                <div><label style="color:#e6b13a;">Event Name:</label><input asp-for="NewEvent.Name" required style="width:100%;" /></div>
+                <div><label style="color:#e6b13a;">Start Date:</label><input asp-for="NewEvent.StartDate" type="date" required style="width:100%;" /></div>
+                <div><label style="color:#e6b13a;">End Date:</label><input asp-for="NewEvent.EndDate" type="date" required style="width:100%;" /></div>
+                <div><label style="color:#e6b13a;">Category:</label><select asp-for="NewEvent.Category" asp-items="Model.EventCategories" style="width:100%;"></select></div>
+                <div><label style="color:#e6b13a;">Location:</label><input asp-for="NewEvent.Location" required style="width:100%;" /></div>
+                <button type="submit" style="margin-top:12px; background:#e6b13a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Event</button>
+            </form>
+        }
+        else
+        {
+            <div style="color:#e6b13a; margin-top:12px;">Log in to create events.</div>
+        }
+    </div>
+    <!-- Add New Announcement -->
+    <div style="background:#fff; color:#417a4a; border:2.5px solid #417a4a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
+        <h2 style="color:#417a4a; font-size:1.3rem; margin-bottom:18px;">Add New Announcement</h2>
+        @if (Model.IsLoggedIn)
+        {
+            <form method="post" asp-page-handler="CreateAnnouncement" style="width:100%;">
+                <div><label style="color:#417a4a;">Announcement Name:</label><input asp-for="NewAnnouncement.Name" required style="width:100%;" /></div>
+                <div><label style="color:#417a4a;">Start Date:</label><input asp-for="NewAnnouncement.StartDate" type="date" required style="width:100%;" /></div>
+                <div><label style="color:#417a4a;">End Date:</label><input asp-for="NewAnnouncement.EndDate" type="date" required style="width:100%;" /></div>
+                <div><label style="color:#417a4a;">Category:</label><select asp-for="NewAnnouncement.Category" asp-items="Model.AnnouncementCategories" style="width:100%;"></select></div>
+                <div><label style="color:#417a4a;">Location:</label><input asp-for="NewAnnouncement.Location" required style="width:100%;" /></div>
+                <button type="submit" style="margin-top:12px; background:#417a4a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Announcement</button>
+            </form>
+        }
+        else
+        {
+            <div style="color:#417a4a; margin-top:12px;">Log in to create announcements.</div>
+        }
     </div>
 </div>
 

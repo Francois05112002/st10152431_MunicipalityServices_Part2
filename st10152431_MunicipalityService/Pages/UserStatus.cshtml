@@ -1,0 +1,88 @@
+﻿@page
+@model st10152431_MunicipalityService.Pages.UserStatusModel
+@{
+    ViewData["Title"] = "My Reported Issues";
+}
+
+<h1 class="main-heading">My Reported Issues</h1>
+
+<!-- Search Section -->
+<div class="search-section" style="background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <form method="post" asp-page-handler="Search" class="search-box" style="display: flex; gap: 10px; align-items: center;">
+        <input type="number"
+               name="searchId"
+               class="search-input"
+               placeholder="Enter Issue ID (e.g., 1, 2, 3...)"
+               value="@Model.SearchId"
+               min="1"
+               style="flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;" />
+        <button type="submit" class="btn btn-primary" style="padding: 12px 30px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; background: #2c5234; color: white;">Search</button>
+        @if (Model.SearchId.HasValue)
+        {
+            <a href="/UserStatus" class="btn btn-secondary" style="padding: 12px 30px; border-radius: 8px; background: #6c757d; color: white; text-decoration: none;">Clear</a>
+        }
+    </form>
+</div>
+
+<!-- Search Result Message -->
+@if (Model.SearchResult != null)
+{
+    <div class="alert alert-success" style="background: #d4edda; border-left: 4px solid #28a745; color: #155724; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px;">
+        ✅ Found your issue! Showing result below.
+    </div>
+}
+else if (Model.SearchId.HasValue)
+{
+    <div class="alert alert-info" style="background: #d1ecf1; border-left: 4px solid #0c5460; color: #0c5460; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px;">
+        ⚠️ No issue found with ID <strong>@Model.SearchId</strong> in your reported issues.
+    </div>
+}
+
+<div class="status-container" style="max-width: 800px; margin: 0 auto; padding: 24px;">
+    @if (Model.DisplayIssues != null && Model.DisplayIssues.Any())
+    {
+        <div>
+            @foreach (var issue in Model.DisplayIssues)
+            {
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 18px 20px; margin-bottom: 18px; border-left: 5px solid #e6b13a;">
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #2c5234;">
+                        Issue #@issue.Id: @issue.Category
+                    </div>
+                    <div style="margin: 8px 0 12px 0;">
+                        <strong>Description:</strong> @issue.Description
+                    </div>
+                    <div>
+                        <strong>Status:</strong>
+                        @if (string.IsNullOrEmpty(issue.Status) || issue.Status == "Pending")
+                        {
+                            <span class="badge badge-warning" style="background: #ffc107; color: #222;">Pending Evaluation</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-info" style="background: #17a2b8; color: #fff;">@issue.Status</span>
+                        }
+                    </div>
+                    <div style="margin-top: 6px; color: #555;">
+                        <strong>Reported:</strong> @issue.Timestamp.ToString("yyyy-MM-dd")
+                        @if (!string.IsNullOrEmpty(issue.Location))
+                        {
+                            <span> | <strong>Location:</strong> @issue.Location</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div style="text-align: center; color: #888; margin-top: 48px;">
+            <div style="font-size: 2.5rem;">📭</div>
+            <div style="font-size: 1.2rem; margin-top: 12px;">No issues found</div>
+            <div style="margin-top: 8px;">
+                <a href="/Report" style="color: #2c5234; text-decoration: underline;">Report an issue</a> to get started!
+            </div>
+        </div>
+    }
+</div>
+
+

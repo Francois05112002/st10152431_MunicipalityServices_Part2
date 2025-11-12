@@ -17,6 +17,9 @@ namespace st10152431_MunicipalityService.Pages
         public User UserProfile { get; set; }
         public string Message { get; set; }
 
+        [TempData]
+        public string SuccessMessage { get; set; }
+
         public RegisterModel(UserService userService)
         {
             _userService = userService;
@@ -35,103 +38,82 @@ namespace st10152431_MunicipalityService.Pages
 
         public void OnGet()
         {
-            var loggedInPhone = HttpContext.Session.GetString("UserPhone");
-            if (!string.IsNullOrEmpty(loggedInPhone))
+            // If already logged in as user, show profile
+            var userPhone = HttpContext.Session.GetString("UserPhone");
+            var employeePhone = HttpContext.Session.GetString("EmployeePhone");
+            if (!string.IsNullOrEmpty(userPhone))
             {
-                UserProfile = _userService.GetUser(loggedInPhone);
+                UserProfile = _userService.GetUser(userPhone);
             }
         }
 
-        public IActionResult OnPost(string action)
+        public IActionResult OnPost()
         {
+            var action = Request.Form["action"];
             if (action == "register")
-                return HandleRegister();
+            {
+                // Only validate for registration
+                if (!ModelState.IsValid)
+                {
+                    Message = "Please correct the errors and try again.";
+                    return Page();
+                }
+                if (_userService.RegisterUser(Input.Name.Trim(), Input.CellphoneNumber.Trim()))
+                {
+                    HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber.Trim());
+                    HttpContext.Session.Remove("EmployeePhone");
+                    return RedirectToPage("/Index");
+                }
+                else
+                {
+                    Message = "User already exists.";
+                    return Page();
+                }
+            }
             else if (action == "login")
-                return HandleLogin();
+            {
+                // Remove Name validation error for login
+                ModelState.Remove("Input.Name");
+
+                var phone = Input.CellphoneNumber?.Trim();
+                if (string.IsNullOrEmpty(phone) || !Regex.IsMatch(phone, @"^\d{10}$"))
+                {
+                    Message = "Please enter a valid 10-digit cellphone number.";
+                    return Page();
+                }
+
+                if (phone == "1111111111")
+                {
+                    // Employee login
+                    HttpContext.Session.SetString("EmployeePhone", phone);
+                    HttpContext.Session.Remove("UserPhone");
+                    SuccessMessage = "Employee login successful!";
+                    return Page(); // Stay on Register page, show message
+                }
+                else if (_userService.UserExists(phone))
+                {
+                    // Regular user login
+                    HttpContext.Session.SetString("UserPhone", phone);
+                    HttpContext.Session.Remove("EmployeePhone");
+                    return RedirectToPage("/Index");
+                }
+                else
+                {
+                    Message = "Invalid login.";
+                    return Page();
+                }
+            }
             else if (action == "logout")
-                return HandleLogout();
-
-            return Page();
-        }
-
-        private IActionResult HandleRegister()
-        {
-            // Server-side validation
-            if (!ModelState.IsValid)
             {
-                Message = "Please correct the errors and try again.";
-                return Page();
+                HttpContext.Session.Remove("UserPhone");
+                HttpContext.Session.Remove("EmployeePhone");
+                UserProfile = null;
+                SuccessMessage = null;
+                Message = "You have been logged out successfully.";
+                return RedirectToPage("/Register");
             }
-
-            // Defensive validation (in case client-side is bypassed)
-            if (!Regex.IsMatch(Input.Name ?? "", @"^[A-Za-z\s]+$"))
-            {
-                ModelState.AddModelError("Input.Name", "Name must contain only letters and spaces");
-                Message = "Please correct the errors and try again.";
-                return Page();
-            }
-            if (!Regex.IsMatch(Input.CellphoneNumber ?? "", @"^\d{10}$"))
-            {
-                ModelState.AddModelError("Input.CellphoneNumber", "Cellphone number must be exactly 10 digits");
-                Message = "Please correct the errors and try again.";
-                return Page();
-            }
-
-            bool success = _userService.RegisterUser(Input.Name.Trim(), Input.CellphoneNumber.Trim());
-
-            if (success)
-            {
-                HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber.Trim());
-                UserProfile = _userService.GetUser(Input.CellphoneNumber.Trim());
-                Message = "Registration successful! You are now logged in.";
-            }
-            else
-            {
-                Message = "User with this cellphone number already exists. Please log in instead.";
-            }
-
-            return Page();
-        }
-
-        private IActionResult HandleLogin()
-        {
-            // Only validate cellphone for login
-            if (string.IsNullOrWhiteSpace(Input.CellphoneNumber))
-            {
-                ModelState.AddModelError("Input.CellphoneNumber", "Cellphone number is required");
-                Message = "Please provide a cellphone number.";
-                return Page();
-            }
-            if (!Regex.IsMatch(Input.CellphoneNumber ?? "", @"^\d{10}$"))
-            {
-                ModelState.AddModelError("Input.CellphoneNumber", "Cellphone number must be exactly 10 digits");
-                Message = "Please enter a valid 10-digit cellphone number.";
-                return Page();
-            }
-
-            User user = _userService.LoginUser(Input.CellphoneNumber.Trim());
-
-            if (user != null)
-            {
-                HttpContext.Session.SetString("UserPhone", Input.CellphoneNumber.Trim());
-                UserProfile = user;
-                Message = $"Welcome back, {user.Name}!";
-            }
-            else
-            {
-                Message = "User not found. Please register first.";
-            }
-
-            return Page();
-        }
-
-        private IActionResult HandleLogout()
-        {
-            HttpContext.Session.Remove("UserPhone");
-            UserProfile = null;
-            Message = "You have been logged out successfully.";
-
             return Page();
         }
     }
 }
+

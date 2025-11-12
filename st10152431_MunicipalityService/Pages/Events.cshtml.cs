@@ -17,7 +17,6 @@ namespace st10152431_MunicipalityService.Pages
         public List<SelectListItem> EventCategories { get; set; }
         public List<SelectListItem> AnnouncementCategories { get; set; }
 
-
         // Unified filter properties
         [BindProperty(SupportsGet = true)]
         public string CategoryFilter { get; set; }
@@ -61,11 +60,10 @@ namespace st10152431_MunicipalityService.Pages
             IsLoggedIn = !string.IsNullOrEmpty(userPhone);
 
             EventCategories = _eventService.GetEventCategories()
-    .Select(c => new SelectListItem { Value = c, Text = c }).ToList();
+                .Select(c => new SelectListItem { Value = c, Text = c }).ToList();
 
             AnnouncementCategories = _eventService.GetAnnouncementCategories()
                 .Select(c => new SelectListItem { Value = c, Text = c }).ToList();
-
 
             // Get all events and announcements (active only)
             var allEvents = _eventService.GetAllEvents();
@@ -231,4 +229,3 @@ namespace st10152431_MunicipalityService.Pages
         }
     }
 }
-

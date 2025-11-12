@@ -1,67 +1,87 @@
-﻿<!DOCTYPE html>
+﻿@{
+	var userPhone = Context.Session.GetString("UserPhone");
+	var employeePhone = Context.Session.GetString("EmployeePhone");
+}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MunicipalityServicesPROG7312</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/MunicipalityServicesPROG7312.styles.css" asp-append-version="true" />
-    <style>
-        h1, .main-heading {
-            font-family: 'Monospace', monospace;
-            font-size: 3rem;
-            color: #417a4a;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-    </style>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - MunicipalityServicesPROG7312</title>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+	<link rel="stylesheet" href="~/MunicipalityServicesPROG7312.styles.css" asp-append-version="true" />
+	<style>
+		h1, .main-heading {
+			font-family: 'Monospace', monospace;
+			font-size: 3rem;
+			color: #417a4a;
+			font-weight: bold;
+			text-align: center;
+			margin-bottom: 1.5rem;
+		}
+	</style>
 </head>
 
 <body class="main-bg">
 
-    <header class="custom-header">
-        <div class="header-content">
-            <img src="~/images/sa-logo.png" alt="SA Logo" class="sa-logo" />
-            <div class="site-title">
-                South African<br />municipality<br />services
-            </div>
-            <nav class="main-nav">
-                <a class="nav-link" asp-page="/Index">Home</a>
-                <a class="nav-link" asp-page="/Privacy">Privacy</a>
-                <a class="nav-link" asp-page="/Register">Account</a>
-                <a class="nav-link" asp-page="/Report">Report</a>
-				<a class="nav-link" asp-page="/Events">Events</a>
-				<a class="nav-link" asp-page="/Status">Status</a>
+	<header class="custom-header">
+		<div class="header-content">
+			<img src="~/images/sa-logo.png" alt="SA Logo" class="sa-logo" />
+			<div class="site-title">
+				South African<br />municipality<br />services
+			</div>
+			<nav class="main-nav">
+				@if (!string.IsNullOrEmpty(employeePhone))
+				{
+					<a class="nav-link" asp-page="/EmployeeStatus">Manage Issues</a>
+					<a class="nav-link" asp-page="/Register" asp-route-logout="true">Logout</a>
+				}
+				else if (!string.IsNullOrEmpty(userPhone))
+				{
+					<a class="nav-link" asp-page="/Index">Home</a>
+					<a class="nav-link" asp-page="/Privacy">Privacy</a>
+					<a class="nav-link" asp-page="/Report">Report</a>
+					<a class="nav-link" asp-page="/Events">Events</a>
+					<a class="nav-link" asp-page="/UserStatus">Status</a>
+					<a class="nav-link" asp-page="/Register" asp-route-logout="true">Logout</a>
+				}
+				else
+				{
+					<a class="nav-link" asp-page="/Index">Home</a>
+					<a class="nav-link" asp-page="/Privacy">Privacy</a>
+					<a class="nav-link" asp-page="/Report">Report</a>
+					<a class="nav-link" asp-page="/Events">Events</a>
+					<a class="nav-link" asp-page="/Register">Account</a>
+				}
 			</nav>
-        </div>
-    </header>
+		</div>
+	</header>
 
-    <div class="container main-content">
-        <main role="main">
-            @RenderBody()
-        </main>
-    </div>
+	<div class="container main-content">
+		<main role="main">
+			@RenderBody()
+		</main>
+	</div>
 
-    <footer class="custom-footer">
-        <div class="footer-left">
-            <a asp-page="/Register" style="color: #fff; text-decoration: underline;">
-                Go to Account
-            </a>
-        </div>
-        <div class="footer-right">
-            Company Copyright / @DateTime.Now.ToString("yyyy-MM-dd")
-        </div>
-    </footer>
+	<footer class="custom-footer">
+		<div class="footer-left">
+			<a asp-page="/Register" style="color: #fff; text-decoration: underline;">
+				Go to Account
+			</a>
+		</div>
+		<div class="footer-right">
+			Municipality Services of South Africa / @DateTime.Now.ToString("yyyy-MM-dd")
+		</div>
+	</footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-    @section Scripts {
-        <partial name="_ValidationScriptsPartial" />
-    }
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+	@await RenderSectionAsync("Scripts", required: false)
+	@section Scripts {
+		<partial name="_ValidationScriptsPartial" />
+	}
 </body>
 </html>

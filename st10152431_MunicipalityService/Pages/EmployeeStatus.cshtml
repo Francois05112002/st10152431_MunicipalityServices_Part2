@@ -1,0 +1,497 @@
+﻿@page
+@model st10152431_MunicipalityService.Pages.EmployeeStatusModel
+@{
+    ViewData["Title"] = "Employee Dashboard - Manage Issues";
+}
+
+<style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, #1a3a24 0%, #2c5234 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .header-title {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .header-subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #2c5234;
+    }
+
+    .stat-card.urgent {
+        border-left-color: #dc3545;
+    }
+
+    .stat-number {
+        font-size: 38px;
+        font-weight: bold;
+        color: #2c5234;
+        margin-bottom: 5px;
+    }
+
+    .stat-card.urgent .stat-number {
+        color: #dc3545;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .filters-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .filter-btn {
+        padding: 8px 20px;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .filter-btn:hover {
+        border-color: #2c5234;
+        background: #f0f8f0;
+    }
+
+    .filter-btn.active {
+        background: #2c5234;
+        color: white;
+        border-color: #2c5234;
+    }
+
+    .issues-table-section {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c5234;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #e8b923;
+    }
+
+    .issue-row {
+        background: #f8f9fa;
+        border-left: 4px solid #6c757d;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        transition: all 0.3s;
+    }
+
+    .issue-row:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateX(3px);
+    }
+
+    .issue-row.unreviewed {
+        border-left-color: #ffc107;
+        background: #fffdf0;
+    }
+
+    .issue-row.priority-1 {
+        border-left-color: #dc3545;
+        background: #fff5f5;
+    }
+
+    .issue-row.priority-2 {
+        border-left-color: #fd7e14;
+        background: #fff8f0;
+    }
+
+    .issue-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .issue-id-badge {
+        background: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        color: #2c5234;
+        font-size: 14px;
+    }
+
+    .issue-details {
+        margin-bottom: 15px;
+    }
+
+    .issue-title-text {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c5234;
+        margin-bottom: 8px;
+    }
+
+    .issue-description-text {
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+
+    .issue-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .management-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    .form-select {
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: #2c5234;
+    }
+
+    .form-input {
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #2c5234;
+    }
+
+    .btn-update {
+        padding: 10px 24px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-update:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .badge-critical { background: #dc3545; color: white; }
+    .badge-high { background: #fd7e14; color: white; }
+    .badge-medium { background: #ffc107; color: black; }
+    .badge-low { background: #28a745; color: white; }
+    .badge-verylow { background: #6c757d; color: white; }
+    .badge-unreviewed { background: #ffc107; color: black; animation: pulse 2s infinite; }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    .alert {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+    }
+
+    .alert-info {
+        background: #d1ecf1;
+        border-color: #0c5460;
+        color: #0c5460;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #999;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-title">👷 Employee Dashboard</div>
+        <div class="header-subtitle">
+            Manage and review all reported issues • Logged in as: <strong>Employee (@Model.EmployeePhone)</strong>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">
+            ✅ @Model.SuccessMessage
+        </div>
+    }
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">@Model.TotalIssues</div>
+            <div class="stat-label">Total Issues</div>
+        </div>
+        <div class="stat-card urgent">
+            <div class="stat-number">@Model.UnreviewedIssues</div>
+            <div class="stat-label">Need Review</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@Model.PendingIssues</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@Model.InProgressIssues</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@Model.CompletedIssues</div>
+            <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card urgent">
+            <div class="stat-number">@Model.OverdueIssues</div>
+            <div class="stat-label">Overdue</div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <h3 style="color: #2c5234; margin-bottom: 10px;">🔍 Filter Issues</h3>
+        <div class="filter-buttons">
+            <a href="/EmployeeStatus" class="filter-btn @(string.IsNullOrEmpty(Model.FilterType) ? "active" : "")">
+                📋 All Issues (@Model.TotalIssues)
+            </a>
+            <a href="/EmployeeStatus?filter=unreviewed" class="filter-btn @(Model.FilterType == "unreviewed" ? "active" : "")">
+                ⚪ Need Review (@Model.UnreviewedIssues)
+            </a>
+            <a href="/EmployeeStatus?filter=pending" class="filter-btn @(Model.FilterType == "pending" ? "active" : "")">
+                ⏳ Pending (@Model.PendingIssues)
+            </a>
+            <a href="/EmployeeStatus?filter=inprogress" class="filter-btn @(Model.FilterType == "inprogress" ? "active" : "")">
+                🔧 In Progress (@Model.InProgressIssues)
+            </a>
+            <a href="/EmployeeStatus?filter=overdue" class="filter-btn @(Model.FilterType == "overdue" ? "active" : "")">
+                ⚠️ Overdue (@Model.OverdueIssues)
+            </a>
+        </div>
+    </div>
+
+    <!-- Issues List -->
+    <div class="issues-table-section">
+        <div class="section-title">
+            @if (!string.IsNullOrEmpty(Model.FilterType))
+            {
+                <span>Filtered Issues (@Model.FilteredIssues.Count)</span>
+            }
+            else
+            {
+                <span>All Reported Issues (@Model.FilteredIssues.Count)</span>
+            }
+        </div>
+
+        @if (Model.FilteredIssues.Any())
+        {
+            foreach (var issue in Model.FilteredIssues)
+            {
+                <div class="issue-row @(issue.Priority.HasValue ? $"priority-{issue.Priority}" : "unreviewed")">
+                    <form method="post" asp-page-handler="UpdateIssue">
+                        <input type="hidden" name="issueId" value="@issue.Id" />
+
+                        <!-- Header -->
+                        <div class="issue-header-row">
+                            <div class="issue-id-badge">Issue #@issue.Id</div>
+                            <div style="display: flex; gap: 10px;">
+                                @if (!issue.Priority.HasValue)
+                                {
+                                    <span class="badge badge-unreviewed">⚪ NEEDS REVIEW</span>
+                                }
+                                @if (issue.IsOverdue())
+                                {
+                                    <span class="badge badge-critical">⚠️ OVERDUE</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Issue Details -->
+                        <div class="issue-details">
+                            <div class="issue-title-text">📋 @issue.Category Issue</div>
+                            <div class="issue-description-text">@issue.Description</div>
+                        </div>
+
+                        <!-- Meta Information -->
+                        <div class="issue-meta-row">
+                            <div class="meta-item">
+                                <strong>📍 Location:</strong> @issue.Location
+                            </div>
+                            <div class="meta-item">
+                                <strong>📅 Reported:</strong> @issue.Timestamp.ToString("MMM dd, yyyy")
+                            </div>
+                            <div class="meta-item">
+                                <strong>👤 Reported By:</strong> @(issue.UserId ?? "Anonymous")
+                            </div>
+                            @if (issue.ImagePath != null)
+                            {
+                                <div class="meta-item">
+                                    <strong>📎</strong> <a href="@issue.ImagePath" target="_blank">View Attachment</a>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Management Form -->
+                        <div class="management-form">
+                            <div class="form-group">
+                                <label class="form-label">Priority Level</label>
+                                <select name="priority" class="form-select" required>
+                                    <option value="">Select Priority...</option>
+                                    <option value="1" selected="@(issue.Priority == 1)">🔴 Critical</option>
+                                    <option value="2" selected="@(issue.Priority == 2)">🟠 High</option>
+                                    <option value="3" selected="@(issue.Priority == 3)">🟡 Medium</option>
+                                    <option value="4" selected="@(issue.Priority == 4)">🟢 Low</option>
+                                    <option value="5" selected="@(issue.Priority == 5)">⚪ Very Low</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-select" required>
+                                    <option value="Pending" selected="@(issue.Status == "Pending")">⏳ Pending</option>
+                                    <option value="Assigned" selected="@(issue.Status == "Assigned")">👷 Assigned</option>
+                                    <option value="In Progress" selected="@(issue.Status == "In Progress")">🔧 In Progress</option>
+                                    <option value="Completed" selected="@(issue.Status == "Completed")">✅ Completed</option>
+                                    <option value="Cancelled" selected="@(issue.Status == "Cancelled")">❌ Cancelled</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Due Date</label>
+                                <input type="date" 
+                                       name="dueDate" 
+                                       class="form-input" 
+                                       value="@(issue.DueDate?.ToString("yyyy-MM-dd"))"
+                                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn-update">💾 Update Issue</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div>No issues found with current filter</div>
+            </div>
+        }
+    </div>
+</div>
