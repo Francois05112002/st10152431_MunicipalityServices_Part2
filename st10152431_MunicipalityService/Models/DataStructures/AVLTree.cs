@@ -290,6 +290,101 @@ namespace st10152431_MunicipalityService.Models.DataStructures
         }
 
         /// <summary>
+        /// Remove an item from the AVL tree (by value)
+        /// Automatically rebalances to maintain AVL property
+        /// Time Complexity: O(log n)
+        /// </summary>
+        public void Remove(T data)
+        {
+            _root = RemoveRecursive(_root, data);
+        }
+
+        private AVLNode<T> RemoveRecursive(AVLNode<T> node, T data)
+        {
+            if (node == null)
+                return null;
+
+            int comparison = data.CompareTo(node.Data);
+
+            if (comparison < 0)
+            {
+                node.Left = RemoveRecursive(node.Left, data);
+            }
+            else if (comparison > 0)
+            {
+                node.Right = RemoveRecursive(node.Right, data);
+            }
+            else
+            {
+                // Node to be deleted found
+                if (node.Left == null || node.Right == null)
+                {
+                    AVLNode<T> temp = node.Left ?? node.Right;
+                    if (temp == null)
+                    {
+                        // No child
+                        node = null;
+                    }
+                    else
+                    {
+                        // One child
+                        node = temp;
+                    }
+                    _count--;
+                }
+                else
+                {
+                    // Node with two children: Get inorder successor (smallest in right subtree)
+                    AVLNode<T> temp = GetMinNode(node.Right);
+                    node.Data = temp.Data;
+                    node.Right = RemoveRecursive(node.Right, temp.Data);
+                }
+            }
+
+            // If the tree had only one node then return
+            if (node == null)
+                return null;
+
+            // Update height
+            node.UpdateHeight();
+
+            // Get balance factor
+            int balance = node.GetBalanceFactor();
+
+            // Left Left Case
+            if (balance > 1 && node.Left.GetBalanceFactor() >= 0)
+                return RotateRight(node);
+
+            // Left Right Case
+            if (balance > 1 && node.Left.GetBalanceFactor() < 0)
+            {
+                node.Left = RotateLeft(node.Left);
+                return RotateRight(node);
+            }
+
+            // Right Right Case
+            if (balance < -1 && node.Right.GetBalanceFactor() <= 0)
+                return RotateLeft(node);
+
+            // Right Left Case
+            if (balance < -1 && node.Right.GetBalanceFactor() > 0)
+            {
+                node.Right = RotateRight(node.Right);
+                return RotateLeft(node);
+            }
+
+            return node;
+        }
+
+        private AVLNode<T> GetMinNode(AVLNode<T> node)
+        {
+            AVLNode<T> current = node;
+            while (current.Left != null)
+                current = current.Left;
+            return current;
+        }
+
+        /// <summary>
         /// Get tree height (maximum depth)
         /// Time Complexity: O(1) - stored in root node
         /// </summary>

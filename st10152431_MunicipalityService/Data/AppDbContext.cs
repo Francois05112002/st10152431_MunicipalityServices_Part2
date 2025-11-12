@@ -16,7 +16,6 @@ namespace st10152431_MunicipalityService.Data
         public DbSet<PulseResponse> PulseResponses { get; set; }
         public DbSet<ServiceRequest> ServiceRequests { get; set; }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -69,35 +68,65 @@ namespace st10152431_MunicipalityService.Data
                 entity.HasIndex(p => new { p.Date, p.UserId }).IsUnique();
             });
 
+            // Configure ServiceRequest entity
+            modelBuilder.Entity<ServiceRequest>(entity =>
+            {
+                entity.HasKey(sr => sr.RequestId);
+                entity.Property(sr => sr.Title).IsRequired();
+                entity.Property(sr => sr.Description).IsRequired();
+                entity.Property(sr => sr.Category).IsRequired();
+                entity.Property(sr => sr.Location).IsRequired();
+                entity.Property(sr => sr.Priority).IsRequired();
+                entity.Property(sr => sr.Status).IsRequired();
+            });
+
             // ===== SEED TEST DATA =====
-            //SeedData(modelBuilder);
+            SeedData(modelBuilder);
         }
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-            // Seed test users
+            // Seed Users (including an employee)
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
                     CellphoneNumber = "0817246624",
                     Name = "Test User",
-                    PulseDatesString = "" // Empty at start
+                    IssuesReported = 1,
+                    DailyPulsesCompleted = 1,
+                    TotalDataPoints = 3,
+                    PulseDatesString = "2025-10-15"
                 },
                 new User
                 {
                     CellphoneNumber = "0123456789",
                     Name = "John Doe",
-                    PulseDatesString = ""
+                    IssuesReported = 1,
+                    DailyPulsesCompleted = 1,
+                    TotalDataPoints = 2,
+                    PulseDatesString = "2025-10-15"
                 },
                 new User
                 {
                     CellphoneNumber = "0987654321",
                     Name = "Jane Smith",
+                    IssuesReported = 0,
+                    DailyPulsesCompleted = 0,
+                    TotalDataPoints = 0,
+                    PulseDatesString = ""
+                },
+                new User
+                {
+                    CellphoneNumber = "1111111111",
+                    Name = "Employee User",
+                    IssuesReported = 0,
+                    DailyPulsesCompleted = 0,
+                    TotalDataPoints = 0,
                     PulseDatesString = ""
                 }
             );
 
-            // Seed some sample issues - USE FIXED DATES
+            // Seed Issues (with various statuses and priorities)
             modelBuilder.Entity<Issue>().HasData(
                 new Issue
                 {
@@ -107,7 +136,12 @@ namespace st10152431_MunicipalityService.Data
                     Description = "Large pothole causing traffic issues",
                     ImagePath = null,
                     UserId = "0817246624",
-                    Timestamp = new DateTime(2025, 10, 10, 10, 0, 0) // Fixed date
+                    Timestamp = new DateTime(2025, 10, 10, 10, 0, 0),
+                    Priority = 2,
+                    Status = "In Progress",
+                    DueDate = new DateTime(2025, 10, 20),
+                    LastReviewedDate = new DateTime(2025, 10, 12),
+                    ReviewedBy = "1111111111"
                 },
                 new Issue
                 {
@@ -117,7 +151,12 @@ namespace st10152431_MunicipalityService.Data
                     Description = "Water pipe burst on sidewalk",
                     ImagePath = null,
                     UserId = "0123456789",
-                    Timestamp = new DateTime(2025, 10, 12, 14, 30, 0) // Fixed date
+                    Timestamp = new DateTime(2025, 10, 12, 14, 30, 0),
+                    Priority = 1,
+                    Status = "Pending",
+                    DueDate = new DateTime(2025, 10, 22),
+                    LastReviewedDate = null,
+                    ReviewedBy = null
                 },
                 new Issue
                 {
@@ -127,11 +166,16 @@ namespace st10152431_MunicipalityService.Data
                     Description = "Streetlight not working for 2 weeks",
                     ImagePath = null,
                     UserId = null, // Anonymous report
-                    Timestamp = new DateTime(2025, 10, 14, 9, 15, 0) // Fixed date
+                    Timestamp = new DateTime(2025, 10, 14, 9, 15, 0),
+                    Priority = null,
+                    Status = "Pending",
+                    DueDate = null,
+                    LastReviewedDate = null,
+                    ReviewedBy = null
                 }
             );
 
-            // Seed sample events - USE FIXED DATES
+            // Seed Events
             modelBuilder.Entity<Event>().HasData(
                 new Event
                 {
@@ -155,7 +199,7 @@ namespace st10152431_MunicipalityService.Data
                 }
             );
 
-            // Seed sample announcements - USE FIXED DATES
+            // Seed Announcements
             modelBuilder.Entity<Announcement>().HasData(
                 new Announcement
                 {
@@ -179,7 +223,7 @@ namespace st10152431_MunicipalityService.Data
                 }
             );
 
-            // Seed sample pulse responses - USE FIXED DATE
+            // Seed PulseResponses
             modelBuilder.Entity<PulseResponse>().HasData(
                 new PulseResponse
                 {
@@ -187,7 +231,55 @@ namespace st10152431_MunicipalityService.Data
                     Date = "2025-10-15",
                     UserId = "0123456789",
                     Answer = "Satisfied",
-                    CreatedAt = new DateTime(2025, 10, 15, 10, 30, 0) // Fixed date
+                    CreatedAt = new DateTime(2025, 10, 15, 10, 30, 0)
+                },
+                new PulseResponse
+                {
+                    Id = 2,
+                    Date = "2025-10-15",
+                    UserId = "0817246624",
+                    Answer = "Very satisfied",
+                    CreatedAt = new DateTime(2025, 10, 15, 11, 0, 0)
+                }
+            );
+
+            // Seed ServiceRequests (Dependencies as serialized string)
+            modelBuilder.Entity<ServiceRequest>().HasData(
+                new
+                {
+                    RequestId = "REQ-2025-001",
+                    Title = "Fix burst water pipe",
+                    Description = "Major water leak at 45 Beach Road.",
+                    Category = "Water",
+                    Location = "45 Beach Road, Sea Point",
+                    Latitude = -33.9123,
+                    Longitude = 18.3876,
+                    Priority = 1,
+                    Status = "Pending",
+                    UserId = "0123456789",
+                    SubmittedDate = new DateTime(2025, 10, 12, 14, 35, 0),
+                    LastUpdated = new DateTime(2025, 10, 12, 14, 35, 0),
+                    EstimatedCompletion = new DateTime(2025, 10, 20),
+                    Dependencies = "[\"\"]", // No dependencies
+                    Notes = "Urgent: school nearby affected"
+                },
+                new
+                {
+                    RequestId = "REQ-2025-002",
+                    Title = "Repair pothole",
+                    Description = "Large pothole at 123 Main Street.",
+                    Category = "Road",
+                    Location = "123 Main Street, Cape Town",
+                    Latitude = -33.9249,
+                    Longitude = 18.4241,
+                    Priority = 2,
+                    Status = "In Progress",
+                    UserId = "0817246624",
+                    SubmittedDate = new DateTime(2025, 10, 10, 10, 5, 0),
+                    LastUpdated = new DateTime(2025, 10, 12, 12, 0, 0),
+                    EstimatedCompletion = new DateTime(2025, 10, 22),
+                    Dependencies = "[\"REQ-2025-001\"]", // Depends on first request
+                    Notes = string.Empty
                 }
             );
         }

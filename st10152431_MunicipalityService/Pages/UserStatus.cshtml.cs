@@ -10,7 +10,7 @@ namespace st10152431_MunicipalityService.Pages
     /// <summary>
     /// User Status Page Model
     /// Shows only issues reported by the logged-in user
-    /// Allows searching by Issue ID
+    /// Allows searching by Issue ID using a Dictionary for O(1) lookup
     /// </summary>
     public class UserStatusModel : PageModel
     {
@@ -40,6 +40,11 @@ namespace st10152431_MunicipalityService.Pages
         public List<Issue> UserIssues { get; set; } = new List<Issue>();
 
         /// <summary>
+        /// Dictionary for fast lookup by Issue ID
+        /// </summary>
+        public Dictionary<int, Issue> IssueDictionary { get; set; } = new Dictionary<int, Issue>();
+
+        /// <summary>
         /// Issues to display (filtered by search if applicable)
         /// </summary>
         public List<Issue> DisplayIssues { get; set; } = new List<Issue>();
@@ -58,12 +63,11 @@ namespace st10152431_MunicipalityService.Pages
         // ===== HANDLERS =====
 
         /// <summary>
-        /// OnGet: Load user's issues
+        /// OnGet: Load user's issues and build dictionary
         /// </summary>
         public IActionResult OnGet()
         {
-
-            var UserPhone = HttpContext.Session.GetString("UserPhone");
+            UserPhone = HttpContext.Session.GetString("UserPhone");
 
             if (string.IsNullOrEmpty(UserPhone))
             {
@@ -81,6 +85,9 @@ namespace st10152431_MunicipalityService.Pages
             // Load user's issues
             UserIssues = _reportService.GetIssuesByUser(UserPhone);
 
+            // Build dictionary for fast lookup
+            IssueDictionary = UserIssues.ToDictionary(i => i.Id);
+
             // Ensure DisplayIssues is set for the initial page load
             DisplayIssues = UserIssues.OrderByDescending(i => i.Timestamp).ToList();
 
@@ -88,7 +95,7 @@ namespace st10152431_MunicipalityService.Pages
         }
 
         /// <summary>
-        /// OnPostSearch: Search for specific issue by ID
+        /// OnPostSearch: Search for specific issue by ID using dictionary
         /// </summary>
         public IActionResult OnPostSearch(int? searchId)
         {
@@ -106,45 +113,29 @@ namespace st10152431_MunicipalityService.Pages
 
             SearchId = searchId;
 
-            // Load user's issues
-            LoadUserIssues();
+            // Load user's issues and build dictionary
+            UserIssues = _reportService.GetIssuesByUser(UserPhone);
+            IssueDictionary = UserIssues.ToDictionary(i => i.Id);
 
-            // Search within user's issues
-            if (SearchId.HasValue)
+            // Search within user's issues using dictionary
+            if (SearchId.HasValue && IssueDictionary.TryGetValue(SearchId.Value, out var foundIssue))
             {
-                SearchResult = UserIssues.FirstOrDefault(i => i.Id == SearchId.Value);
-
-                if (SearchResult != null)
-                {
-                    DisplayIssues = new List<Issue> { SearchResult };
-                }
-                else
-                {
-                    DisplayIssues = new List<Issue>();
-                }
+                SearchResult = foundIssue;
+                DisplayIssues = new List<Issue> { foundIssue };
+            }
+            else if (SearchId.HasValue)
+            {
+                SearchResult = null;
+                DisplayIssues = new List<Issue>();
+            }
+            else
+            {
+                // If no search, show all issues
+                DisplayIssues = UserIssues.OrderByDescending(i => i.Timestamp).ToList();
             }
 
             return Page();
         }
-
-
-        // ===== HELPER METHODS =====
-
-        /// <summary>
-        /// Load all issues reported by current user
-        /// </summary>
-        private void LoadUserIssues()
-        {
-            // Get issues for this user
-            UserIssues = _reportService.GetIssuesByUser(UserPhone);
-
-            // By default, display all user issues (unless searching)
-            if (!SearchId.HasValue)
-            {
-                DisplayIssues = UserIssues
-                    .OrderByDescending(i => i.Timestamp)  // Newest first
-                    .ToList();
-            }
-        }
     }
 }
+

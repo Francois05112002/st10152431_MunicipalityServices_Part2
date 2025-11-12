@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace st10152431_MunicipalityService.Models
 {
-    public class Event
+    public class Event : IComparable<Event>
     {
         public int Id { get; set; }
 
@@ -31,6 +31,12 @@ namespace st10152431_MunicipalityService.Models
         {
             StartDate = DateTime.Today;
             EndDate = DateTime.Today;
+        }
+
+        public int CompareTo(Event? other)
+        {
+            if (other == null) return 1;
+            return this.StartDate.CompareTo(other.StartDate);
         }
     }
 }

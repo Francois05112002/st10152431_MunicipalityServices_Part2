@@ -1,108 +1,129 @@
 ﻿@page
 @model st10152431_MunicipalityService.Pages.EventsModel
 @{
-    ViewData["Title"] = "Local Events & Announcements";
+	ViewData["Title"] = "Local Events & Announcements";
 }
 
 <h1 class="main-heading">Local Events & Announcements</h1>
 
 <!-- Main List Block with double border -->
 <div style="background:#417a4a; border-radius:20px; padding:4px; max-width:1150px; margin:0 auto 32px auto;">
-    <div style="background:#fff; border:2.5px solid #e6b13a; border-radius:16px; box-shadow:0 2px 12px #0001; padding:36px 32px 32px 32px;">
-        <!-- Filters -->
-        <form method="get" style="display:flex; gap:24px; align-items:center; margin-bottom:28px; flex-wrap:wrap;">
-            <div>
-                <label>Filter by Category:</label>
-                <select name="CategoryFilter" style="min-width:140px;">
-                    <option value="">All</option>
-                    @foreach (var cat in Model.EventCategories.Concat(Model.AnnouncementCategories).DistinctBy(c => c.Value))
-                    {
-                        <option value="@cat.Value">@cat.Text</option>
-                    }
-                </select>
-            </div>
-            <div>
-                <label>Filter by Date:</label>
-                <input name="DateFilter" type="date" />
-            </div>
-            <div>
-                <label>Type:</label>
-                <select name="TypeFilter">
-                    <option value="">All</option>
-                    <option value="Event">Event</option>
-                    <option value="Announcement">Announcement</option>
-                </select>
-            </div>
-            <button type="submit" style="margin-left:16px;">Apply Filters</button>
-        </form>
+	<div style="background:#fff; border:2.5px solid #e6b13a; border-radius:16px; box-shadow:0 2px 12px #0001; padding:36px 32px 32px 32px;">
+		<!-- Filters -->
+		<form method="get" style="display:flex; gap:24px; align-items:center; margin-bottom:28px; flex-wrap:wrap;">
+			<div>
+				<label>Filter by Category:</label>
+				<select name="CategoryFilter" style="min-width:140px;">
+					<option value="">All</option>
+					@foreach (var cat in Model.EventCategories.Concat(Model.AnnouncementCategories).DistinctBy(c => c.Value))
+					{
+						<option value="@cat.Value" selected="@(Model.CategoryFilter == cat.Value ? "selected" : null)">@cat.Text</option>
+					}
+				</select>
+			</div>
+			<div>
+				<label>Filter by Date:</label>
+				<input name="DateFilter" type="date" value="@(Model.DateFilter?.ToString("yyyy-MM-dd") ?? "")" />
+			</div>
+			<div>
+				<label>Type:</label>
+				<select name="TypeFilter">
+					<option value="" selected="@(string.IsNullOrEmpty(Model.TypeFilter) ? "selected" : null)">All</option>
+					<option value="Event" selected="@(Model.TypeFilter == "Event" ? "selected" : null)">Event</option>
+					<option value="Announcement" selected="@(Model.TypeFilter == "Announcement" ? "selected" : null)">Announcement</option>
+				</select>
+			</div>
+			<button type="submit" style="margin-left:16px;">Apply Filters</button>
+		</form>
 
-        <!-- Events and Announcements List -->
-        <div>
-            <h2 style="color:#e6b13a; margin-top:18px;">Events</h2>
-            <ul>
-                @foreach (var evt in Model.FilteredEvents.Where(e => e.EndDate >= DateTime.Today))
-                {
-                    <li style="margin-bottom:18px;">
-                        <strong>@evt.Name</strong> - @evt.Category<br />
-                        <span>From @evt.StartDate.ToString("yyyy-MM-dd") to @evt.EndDate.ToString("yyyy-MM-dd")</span><br />
-                        <span style="color:#555;">Location: @evt.Location</span>
-                    </li>
-                }
-            </ul>
-            <h2 style="color:#417a4a; margin-top:32px;">Announcements</h2>
-            <ul>
-                @foreach (var ann in Model.FilteredAnnouncements.Where(a => a.EndDate >= DateTime.Today))
-                {
-                    <li style="margin-bottom:18px;">
-                        <strong>@ann.Name</strong> - @ann.Category<br />
-                        <span>From @ann.StartDate.ToString("yyyy-MM-dd") to @ann.EndDate.ToString("yyyy-MM-dd")</span><br />
-                        <span style="color:#555;">Location: @ann.Location</span>
-                    </li>
-                }
-            </ul>
-        </div>
-    </div>
+		<!-- Events and Announcements List -->
+		<div>
+			<h2 style="color:#e6b13a; margin-top:18px;">Events</h2>
+			<ul>
+				@foreach (var evt in Model.FilteredEvents.Where(e => e.EndDate >= DateTime.Today))
+				{
+					<li style="margin-bottom:18px;">
+						<strong>@evt.Name</strong> - @evt.Category<br />
+						<span>From @evt.StartDate.ToString("yyyy-MM-dd") to @evt.EndDate.ToString("yyyy-MM-dd")</span><br />
+						<span style="color:#555;">Location: @evt.Location</span>
+						@if (Model.IsLoggedIn)
+						{
+							<form method="post" asp-page-handler="DeleteEvent" style="display:inline;">
+								<input type="hidden" name="eventId" value="@evt.Id" />
+								<button type="submit" style="margin-left:12px; background:#b13a3a; color:#fff; border:none; border-radius:4px; padding:2px 10px; font-size:0.95rem; cursor:pointer;"
+										onclick="return confirm('Are you sure you want to delete this event?');">
+									Delete
+								</button>
+							</form>
+						}
+					</li>
+				}
+			</ul>
+			<h2 style="color:#417a4a; margin-top:32px;">Announcements</h2>
+			<ul>
+				@foreach (var ann in Model.FilteredAnnouncements.Where(a => a.EndDate >= DateTime.Today))
+				{
+					<li style="margin-bottom:18px;">
+						<strong>@ann.Name</strong> - @ann.Category<br />
+						<span>From @ann.StartDate.ToString("yyyy-MM-dd") to @ann.EndDate.ToString("yyyy-MM-dd")</span><br />
+						<span style="color:#555;">Location: @ann.Location</span>
+						@if (Model.IsLoggedIn)
+						{
+							<form method="post" asp-page-handler="DeleteAnnouncement" style="display:inline;">
+								<input type="hidden" name="announcementId" value="@ann.Id" />
+								<button type="submit" style="margin-left:12px; background:#b13a3a; color:#fff; border:none; border-radius:4px; padding:2px 10px; font-size:0.95rem; cursor:pointer;"
+										onclick="return confirm('Are you sure you want to delete this announcement?');">
+									Delete
+								</button>
+							</form>
+						}
+					</li>
+				}
+			</ul>
+		</div>
+	</div>
 </div>
 
 <!-- Top Add Blocks -->
 <div style="display:flex; gap:32px; justify-content:center; margin-bottom:36px;">
-    <!-- Add New Event -->
-    <div style="background:#fff; color:#e6b13a; border:2.5px solid #e6b13a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
-        <h2 style="color:#e6b13a; font-size:1.3rem; margin-bottom:18px;">Add New Event</h2>
-        @if (Model.IsLoggedIn)
-        {
-            <form method="post" asp-page-handler="CreateEvent" style="width:100%;">
-                <div><label style="color:#e6b13a;">Event Name:</label><input asp-for="NewEvent.Name" required style="width:100%;" /></div>
-                <div><label style="color:#e6b13a;">Start Date:</label><input asp-for="NewEvent.StartDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#e6b13a;">End Date:</label><input asp-for="NewEvent.EndDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#e6b13a;">Category:</label><select asp-for="NewEvent.Category" asp-items="Model.EventCategories" style="width:100%;"></select></div>
-                <div><label style="color:#e6b13a;">Location:</label><input asp-for="NewEvent.Location" required style="width:100%;" /></div>
-                <button type="submit" style="margin-top:12px; background:#e6b13a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Event</button>
-            </form>
-        }
-        else
-        {
-            <div style="color:#e6b13a; margin-top:12px;">Log in to create events.</div>
-        }
-    </div>
-    <!-- Add New Announcement -->
-    <div style="background:#fff; color:#417a4a; border:2.5px solid #417a4a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
-        <h2 style="color:#417a4a; font-size:1.3rem; margin-bottom:18px;">Add New Announcement</h2>
-        @if (Model.IsLoggedIn)
-        {
-            <form method="post" asp-page-handler="CreateAnnouncement" style="width:100%;">
-                <div><label style="color:#417a4a;">Announcement Name:</label><input asp-for="NewAnnouncement.Name" required style="width:100%;" /></div>
-                <div><label style="color:#417a4a;">Start Date:</label><input asp-for="NewAnnouncement.StartDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#417a4a;">End Date:</label><input asp-for="NewAnnouncement.EndDate" type="date" required style="width:100%;" /></div>
-                <div><label style="color:#417a4a;">Category:</label><select asp-for="NewAnnouncement.Category" asp-items="Model.AnnouncementCategories" style="width:100%;"></select></div>
-                <div><label style="color:#417a4a;">Location:</label><input asp-for="NewAnnouncement.Location" required style="width:100%;" /></div>
-                <button type="submit" style="margin-top:12px; background:#417a4a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Announcement</button>
-            </form>
-        }
-        else
-        {
-            <div style="color:#417a4a; margin-top:12px;">Log in to create announcements.</div>
-        }
-    </div>
+	<!-- Add New Event -->
+	<div style="background:#fff; color:#e6b13a; border:2.5px solid #e6b13a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
+		<h2 style="color:#e6b13a; font-size:1.3rem; margin-bottom:18px;">Add New Event</h2>
+		@if (Model.IsLoggedIn)
+		{
+			<form method="post" asp-page-handler="CreateEvent" style="width:100%;">
+				<div><label style="color:#e6b13a;">Event Name:</label><input asp-for="NewEvent.Name" required style="width:100%;" /></div>
+				<div><label style="color:#e6b13a;">Start Date:</label><input asp-for="NewEvent.StartDate" type="date" required style="width:100%;" /></div>
+				<div><label style="color:#e6b13a;">End Date:</label><input asp-for="NewEvent.EndDate" type="date" required style="width:100%;" /></div>
+				<div><label style="color:#e6b13a;">Category:</label><select asp-for="NewEvent.Category" asp-items="Model.EventCategories" style="width:100%;"></select></div>
+				<div><label style="color:#e6b13a;">Location:</label><input asp-for="NewEvent.Location" required style="width:100%;" /></div>
+				<button type="submit" style="margin-top:12px; background:#e6b13a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Event</button>
+			</form>
+		}
+		else
+		{
+			<div style="color:#e6b13a; margin-top:12px;">Log in to create events.</div>
+		}
+	</div>
+	<!-- Add New Announcement -->
+	<div style="background:#fff; color:#417a4a; border:2.5px solid #417a4a; border-radius:14px; width:340px; min-height:220px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; box-shadow:0 2px 8px #0001;">
+		<h2 style="color:#417a4a; font-size:1.3rem; margin-bottom:18px;">Add New Announcement</h2>
+		@if (Model.IsLoggedIn)
+		{
+			<form method="post" asp-page-handler="CreateAnnouncement" style="width:100%;">
+				<div><label style="color:#417a4a;">Announcement Name:</label><input asp-for="NewAnnouncement.Name" required style="width:100%;" /></div>
+				<div><label style="color:#417a4a;">Start Date:</label><input asp-for="NewAnnouncement.StartDate" type="date" required style="width:100%;" /></div>
+				<div><label style="color:#417a4a;">End Date:</label><input asp-for="NewAnnouncement.EndDate" type="date" required style="width:100%;" /></div>
+				<div><label style="color:#417a4a;">Category:</label><select asp-for="NewAnnouncement.Category" asp-items="Model.AnnouncementCategories" style="width:100%;"></select></div>
+				<div><label style="color:#417a4a;">Location:</label><input asp-for="NewAnnouncement.Location" required style="width:100%;" /></div>
+				<button type="submit" style="margin-top:12px; background:#417a4a; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:600; width:100%;">Add Announcement</button>
+			</form>
+		}
+		else
+		{
+			<div style="color:#417a4a; margin-top:12px;">Log in to create announcements.</div>
+		}
+	</div>
 </div>
+
 

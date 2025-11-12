@@ -65,7 +65,7 @@ namespace st10152431_MunicipalityService.Pages
             AnnouncementCategories = _eventService.GetAnnouncementCategories()
                 .Select(c => new SelectListItem { Value = c, Text = c }).ToList();
 
-            // Get all events and announcements (active only)
+            // Get all events and announcements (active only, sorted)
             var allEvents = _eventService.GetAllEvents();
             var allAnnouncements = _eventService.GetAllAnnouncements();
 
@@ -227,5 +227,66 @@ namespace st10152431_MunicipalityService.Pages
                 return Page();
             }
         }
+
+        public IActionResult OnPostDeleteEvent(int eventId)
+        {
+            var userPhone = HttpContext.Session.GetString("UserPhone");
+            if (string.IsNullOrEmpty(userPhone))
+            {
+                ModelState.AddModelError(string.Empty, "You must be logged in to delete events.");
+                LoadPageData();
+                return Page();
+            }
+
+            // Get the event and check ownership
+            var evt = _eventService.GetAllEvents().FirstOrDefault(e => e.Id == eventId);
+            if (evt == null)
+            {
+                ModelState.AddModelError(string.Empty, "Event not found.");
+                LoadPageData();
+                return Page();
+            }
+            if (evt.CreatedBy != userPhone)
+            {
+                ModelState.AddModelError(string.Empty, "You can only delete your own events.");
+                LoadPageData();
+                return Page();
+            }
+
+            _eventService.DeleteEvent(eventId);
+            TempData["SuccessMessage"] = "Event deleted successfully.";
+            return RedirectToPage();
+        }
+
+        public IActionResult OnPostDeleteAnnouncement(int announcementId)
+        {
+            var userPhone = HttpContext.Session.GetString("UserPhone");
+            if (string.IsNullOrEmpty(userPhone))
+            {
+                ModelState.AddModelError(string.Empty, "You must be logged in to delete announcements.");
+                LoadPageData();
+                return Page();
+            }
+
+            // Get the announcement and check ownership
+            var ann = _eventService.GetAllAnnouncements().FirstOrDefault(a => a.Id == announcementId);
+            if (ann == null)
+            {
+                ModelState.AddModelError(string.Empty, "Announcement not found.");
+                LoadPageData();
+                return Page();
+            }
+            if (ann.CreatedBy != userPhone)
+            {
+                ModelState.AddModelError(string.Empty, "You can only delete your own announcements.");
+                LoadPageData();
+                return Page();
+            }
+
+            _eventService.DeleteAnnouncement(announcementId);
+            TempData["SuccessMessage"] = "Announcement deleted successfully.";
+            return RedirectToPage();
+        }
     }
 }
+
